@@ -1,6 +1,6 @@
 
 %% truck_data_retriever.erl
--module(truck_data_retriever).
+-module(package_get_server).
 -behaviour(gen_server).
 
 %% API
@@ -109,6 +109,9 @@ package_retrieval_test_() ->
             % fun test_database_error/0
         ]
     }.
+
+test_test_() ->
+		?assertEqual(1, 1).
 
 %% Setup function to mock database_client before each test
 setup() ->
