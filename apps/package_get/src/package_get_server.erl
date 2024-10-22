@@ -69,33 +69,11 @@ code_change(_OldVsn, State, _Extra) ->
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
 
--include_lib("meck/include/meck.hrl").
+% -include_lib("meck/include/meck.hrl").
  
-	PackageData = #{
-			<<"sender">>: <<"Alice">>,
-			<<"receiver">>: <<"Bob">>,
-			<<"destination">>: #{
-				<<"street">>: <<"123 Cat Lane">>,
-				<<"city">>: <<"Wonderland">>,
-			  <<"state">>: <<"NY">>,
-				<<"zip">>: <<"12345">>,
-			  <<"country">>: <<"USA">>
-			},
-			<<"returnAddress">>: #{
-				<<"street">>: <<"456 Yellow Brick Rd">>,
-				<<"city">>: <<"OZ">>,
-			  <<"state">>: <<"KS">>,
-				<<"zip">>: <<"54321">>,
-			  <<"country">>: <<"England">>
-			},
-			<<"status">>: <<"in transit">>,
-			<<"priority">>: <<"overnight">>,
-			<<"truckId">>: <<"truck123">>,
-			<<"longitude">>: <<-72.532>>,
-			<<"latitude">>: <<42.532>>
-	}.
 
-DatabaseError = {error, "Database down"}.
+
+
 
 %% Test for package retrieval success and failure using mocked database_client
 package_retrieval_test_() ->
@@ -139,6 +117,30 @@ cleanup(Pid) ->
     meck:unload(database_client).
 
 test_package_found()->
+    PackageData = #{
+        <<"sender">> => <<"Alice">>,
+        <<"receiver">> => <<"Bob">>,
+        <<"destination">>=> #{
+            <<"street">>=> <<"123 Cat Lane">>,
+            <<"city">>=> <<"Wonderland">>,
+          <<"state">>=> <<"NY">>,
+            <<"zip">>=> <<"12345">>,
+          <<"country">>=> <<"USA">>
+        },
+        <<"returnAddress">>=> #{
+            <<"street">>=> <<"456 Yellow Brick Rd">>,
+            <<"city">>=> <<"OZ">>,
+          <<"state">>=> <<"KS">>,
+            <<"zip">>=> <<"54321">>,
+          <<"country">>=> <<"England">>
+        },
+        <<"status">>=> <<"in transit">>,
+        <<"priority">>=> <<"overnight">>,
+        <<"truckId">>=> <<"truck123">>,
+        <<"longitude">>=> <<-72.532>>,
+        <<"latitude">>=> <<42.532>>
+},
+DatabaseError = {error, "Database down"},
 	 %% Mock the get function to return package data when requested
     meck:expect(database_client, get, 3, 
         fun (_Connection, <<"packages">>, <<"PKG123456">>) ->
