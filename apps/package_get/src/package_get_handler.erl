@@ -6,7 +6,7 @@
 -export([init/2, handle/2, terminate/3]).
 
 %% Include libraries (for JSON encoding, if needed)
--include_lib("jsx/include/jsx.hrl").  %% Assuming using jsx for JSON
+% -include_lib("jsx/include/jsx.hrl").  %% Assuming using jsx for JSON
 
 %% Initialize the HTTP handler
 init(Req, State) ->

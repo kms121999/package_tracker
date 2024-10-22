@@ -1,14 +1,18 @@
-{application, package_get,
- [{description, "An OTP library"},
-  {vsn, "0.1.0"},
-  {registered, []},
-  {applications,
-   [kernel,
-    stdlib
-   ]},
-  {env,[]},
-  {modules, []},
+%%%-------------------------------------------------------------------
+%% @doc package_tracker public API
+%% @end
+%%%-------------------------------------------------------------------
 
-  {licenses, ["Apache-2.0"]},
-  {links, []}
- ]}.
+-module(package_get_app).
+
+-behaviour(application).
+
+-export([start/2, stop/1]).
+
+start(_StartType, _StartArgs) ->
+    package_get_sup:start_link().
+
+stop(_State) ->
+    ok.
+
+%% internal functions
