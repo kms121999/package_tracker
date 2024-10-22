@@ -4,7 +4,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0, get_truck_location/1]).
+-export([start_link/0, get_package_data/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, terminate/2, code_change/3]).
@@ -39,11 +39,11 @@ handle_call({get_package_data, PackageId}, _From, Connection) ->
             {reply, {ok, Long, Lat}, Connection};
         {error, not_found} ->
             %% Handle the case where the truck location is not found
-            io:format("Truck ~p not found in database~n", [TruckId]),
+            io:format("Truck ~p not found in database~n", [PackageId]),
             {reply, {error, not_found}, Connection};
         {error, Reason} ->
             %% General error handling
-            io:format("Error retrieving truck ~p from database. Reason: ~p~n", [TruckId, Reason]),
+            io:format("Error retrieving truck ~p from database. Reason: ~p~n", [PackageId, Reason]),
             {reply, {error, Reason}, Connection}
     end.
 
