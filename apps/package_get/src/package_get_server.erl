@@ -139,8 +139,8 @@ test_package_found()->
         <<"truckId">>=> <<"truck123">>,
         <<"longitude">>=> <<-72.532>>,
         <<"latitude">>=> <<42.532>>
-},
-DatabaseError = {error, "Database down"},
+    },
+    DatabaseError = {error, "Database down"},
 	 %% Mock the get function to return package data when requested
     meck:expect(database_client, get, 3, 
         fun (_Connection, <<"packages">>, <<"PKG123456">>) ->
