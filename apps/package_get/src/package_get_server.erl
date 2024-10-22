@@ -120,25 +120,25 @@ test_package_found()->
     PackageData = #{
         <<"sender">> => <<"Alice">>,
         <<"receiver">> => <<"Bob">>,
-        <<"destination">>=> #{
-            <<"street">>=> <<"123 Cat Lane">>,
-            <<"city">>=> <<"Wonderland">>,
-          <<"state">>=> <<"NY">>,
-            <<"zip">>=> <<"12345">>,
-          <<"country">>=> <<"USA">>
+        <<"destination">> => #{
+            <<"street">> => <<"123 Cat Lane">>,
+            <<"city">> => <<"Wonderland">>,
+          <<"state">> => <<"NY">>,
+            <<"zip">> => <<"12345">>,
+          <<"country">> => <<"USA">>
         },
-        <<"returnAddress">>=> #{
-            <<"street">>=> <<"456 Yellow Brick Rd">>,
-            <<"city">>=> <<"OZ">>,
-          <<"state">>=> <<"KS">>,
-            <<"zip">>=> <<"54321">>,
-          <<"country">>=> <<"England">>
+        <<"returnAddress">> => #{
+            <<"street">> => <<"456 Yellow Brick Rd">>,
+            <<"city">> => <<"OZ">>,
+          <<"state">> => <<"KS">>,
+            <<"zip">> => <<"54321">>,
+          <<"country">> => <<"England">>
         },
-        <<"status">>=> <<"in transit">>,
-        <<"priority">>=> <<"overnight">>,
-        <<"truckId">>=> <<"truck123">>,
-        <<"longitude">>=> <<-72.532>>,
-        <<"latitude">>=> <<42.532>>
+        <<"status">> => <<"in transit">>,
+        <<"priority">> => <<"overnight">>,
+        <<"truckId">> => <<"truck123">>,
+        <<"longitude">> => <<-72.532>>,
+        <<"latitude">> => <<42.532>>
     },
     DatabaseError = {error, "Database down"},
 	 %% Mock the get function to return package data when requested
