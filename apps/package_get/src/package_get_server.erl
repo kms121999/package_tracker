@@ -1,7 +1,7 @@
 
 %% truck_data_retriever.erl
 -module(package_get_server).
--behaviour(gen_server).
+-behavior(gen_server).
 
 %% API
 -export([start_link/0, get_package_data/1]).

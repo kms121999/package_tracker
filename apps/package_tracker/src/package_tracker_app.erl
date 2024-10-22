@@ -5,7 +5,7 @@
 
 -module(package_tracker_app).
 
--behaviour(application).
+-(application).
 
 -export([start/2, stop/1]).
 

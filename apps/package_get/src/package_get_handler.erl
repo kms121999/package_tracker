@@ -1,6 +1,6 @@
 %% package_get_handler.erl
 -module(package_get_handler).
--behaviour(cowboy_http).
+-behavior(cowboy_http).
 
 %% Required exports
 -export([init/2, handle/2, terminate/3]).
