@@ -33,7 +33,7 @@ get_package_data(PackageId) ->
 %% Handle synchronous calls
 handle_call({get_package_data, PackageId}, _From, Connection) ->
     %% Query database for the truck location
-    case database_client:get(Connection, <<"truck_locations">>, PackageId) of
+    case database_client:get(Connection, <<"packages">>, <<PackageId>>) of
         {ok, #{<<"longitude">> := Long, <<"latitude">> := Lat}} ->
             %% Found the truck location, return it
             {reply, {ok, Long, Lat}, Connection};
@@ -88,8 +88,8 @@ package_retrieval_test_() ->
         ]
     }.
 
-test_test() ->
-		?assertEqual(1, 1).
+% test_test() ->
+% 		?assertEqual(1, 1).
 
 %% Setup function to mock database_client before each test
 setup() ->
@@ -117,42 +117,39 @@ cleanup(Pid) ->
     meck:unload(database_client).
 
 test_package_found()->
-    PackageData = #{
-        <<"sender">> => <<"Alice">>,
-        <<"receiver">> => <<"Bob">>,
-        <<"destination">> => #{
-            <<"street">> => <<"123 Cat Lane">>,
-            <<"city">> => <<"Wonderland">>,
-          <<"state">> => <<"NY">>,
-            <<"zip">> => <<"12345">>,
-          <<"country">> => <<"USA">>
-        },
-        <<"returnAddress">> => #{
-            <<"street">> => <<"456 Yellow Brick Rd">>,
-            <<"city">> => <<"OZ">>,
-          <<"state">> => <<"KS">>,
-            <<"zip">> => <<"54321">>,
-          <<"country">> => <<"England">>
-        },
-        <<"status">> => <<"in transit">>,
-        <<"priority">> => <<"overnight">>,
-        <<"truckId">> => <<"truck123">>,
-        <<"longitude">> => <<-72.532>>,
-        <<"latitude">> => <<42.532>>
-    },
+    PackageData = #{sender => "Alice", 
+    receiver => "Bob", 
+    destination => 
+        #{ street => "123 Cat Lane", 
+    city => "Wonderland", 
+    state => "NY", 
+    zip => "12345", 
+    country => "USA" }, 
+    returnAddress => 
+        #{ street => "456 Yellow Brick Rd", 
+    city => "OZ", 
+    state => "KS", 
+    zip => "54321", 
+    country => "England" }, 
+    status => "in transit", 
+    priority => "overnight", 
+    truckId => "truck123", 
+    longitude => "-72.532", 
+    latitude => "42.532" },
+        
     DatabaseError = {error, "Database down"},
 	 %% Mock the get function to return package data when requested
     meck:expect(database_client, get, 3, 
-        fun (_Connection, <<"packages">>, <<"PKG123456">>) ->
+        fun (_Connection, <<"packages">>, <<"package123">>) ->
             {ok, PackageData}
         end
 	),
-	[% happy thoughts
-   ?_assertEqual(PackageData, get_package_data(<<"package123">>)),
-	 % nasty thoughts start here
+	% happy thoughts
+     ?_assertEqual(PackageData, get_package_data(<<"package123">>)),
+     	 % nasty thoughts start here
 	 ?_assertEqual({error, not_found}, get_package_data(<<"fakepackage">>)),
 	 ?_assertEqual(DatabaseError, get_package_data(<<"databasedown">>))
-	].
+	.
 
 
 
