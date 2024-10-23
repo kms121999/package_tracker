@@ -88,7 +88,7 @@ package_retrieval_test_() ->
         ]
     }.
 
-test_test_() ->
+test_test() ->
 		?assertEqual(1, 1).
 
 %% Setup function to mock database_client before each test
@@ -103,7 +103,7 @@ setup() ->
     meck:expect(database_client, disconnect, 1, ok),
     
     %% Start the truck_data_retriever service
-    {ok, Pid} = truck_data_retriever:start_link(),
+    {ok, Pid} = package_get_server:start_link(),
     
     %% Return the Pid to use in cleanup
     Pid.
