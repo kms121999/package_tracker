@@ -35,7 +35,7 @@ init([]) ->
                  period => 1},
     ChildSpecs = [
         #{id => cowboy_http_listener,
-            start => {cowboy, start_clear, [http_listener, 100, [{port, 8080}], #{
+            start => {cowboy, start_clear, [http_listener, [{port, 8080}], #{
                 env => #{dispatch => Dispatch}
             }]},
             restart => permanent,
@@ -49,9 +49,10 @@ init([]) ->
           shutdown => 5000,
           type => worker,
           modules => [package_get_server]
-    }
-],
+        }
+    ],
     
     {ok, {SupFlags, ChildSpecs}}.
+
 
 %% internal functions
