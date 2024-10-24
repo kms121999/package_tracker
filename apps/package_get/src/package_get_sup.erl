@@ -29,7 +29,22 @@ init([]) ->
     SupFlags = #{strategy => one_for_all,
                  intensity => 0,
                  period => 1},
-    ChildSpecs = [],
+    ChildSpecs = [
+        #{id => package_get_handler,                       %% Identifying the child
+          start => {package_get_handler, start_link, []},  %% Start the child with start_link/0
+          restart => permanent,                            %% Restart strategy
+          shutdown => 5000,                                %% Shutdown timeout in ms
+          type => worker,                                  %% Declaring it a worker process
+          modules => [package_get_handler]                 %% Modules that define this process
+   },
+        #{id => package_get_server,
+          start => {package_get_server, start_link, []},
+          restart => permanent,
+          shutdown => 5000,
+          type => worker,
+          modules => [package_get_server]
+    }
+],
     {ok, {SupFlags, ChildSpecs}}.
 
 %% internal functions
