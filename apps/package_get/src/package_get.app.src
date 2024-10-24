@@ -7,6 +7,7 @@
    [kernel,
     stdlib,
     cowboy,
+    ranch,
     jsx
    ]},
   {env,[]},
