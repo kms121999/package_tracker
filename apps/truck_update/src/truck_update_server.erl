@@ -19,5 +19,5 @@ handle_cast({update_truck, TruckId, NewData}, _From, State) ->
         {ok, _} ->
             {noreply, State};
         {error, Reason} ->
-            {reply, {error, Reason}, State}
+            {noreply, State}
     end.
