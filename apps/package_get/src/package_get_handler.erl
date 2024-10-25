@@ -1,5 +1,6 @@
 %% package_get_handler.erl
 -module(package_get_handler).
+-behavior(cowboy_handler).
 
 %% Required exports
 -export([init/2, terminate/3]).
