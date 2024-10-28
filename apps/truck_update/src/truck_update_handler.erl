@@ -1,14 +1,12 @@
 %% truck_handler.erl
 -module(truck_update_handler).
--export([init/2, handle/2, terminate/3]).
+-export([init/2, terminate/3]).
 -behaviour(cowboy_handler).
 
--include_lib("cowboy/include/cowboy.hrl").
 
-init(Req, State) ->
-    {cowboy_rest, Req, State}.
 
-handle(Req, State) ->
+init(Req=#{method := <<"POST">>}, State) ->
+
     {ok, Body, Req1} = cowboy_req:read_body(Req),
     ParsedData = jiffy:decode(Body, [return_maps]),
 
@@ -27,7 +25,14 @@ handle(Req, State) ->
     end,
     {StatusCode, RespBody} = Response,
     {ok, Req2} = cowboy_req:reply(StatusCode, #{<<"content-type">> => <<"application/json">>}, jiffy:encode(RespBody), Req1),
-    {ok, Req2, State}.
+    {ok, Req2, State};
+
+
+init(Req0, State) ->
+    Req1 = cowboy_req:reply(405, #{
+        <<"allow">> => <<"POST">>
+    }, Req0),
+    {ok, Req1, State}.
 
 terminate(_Reason, _Req, _State) ->
     ok.

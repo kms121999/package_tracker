@@ -26,17 +26,24 @@ start_link() ->
 %%                  type => worker(),       % optional
 %%                  modules => modules()}   % optional
 init([]) ->
+    %% Define the child specification for Cowboy
+    Dispatch = cowboy_router:compile([
+                {'_', [{"/truck/:truck_id", truck_update_handler, []}]}
+    % {"packages.localhost", [{"/:package_id", package_get_handler, []}]}
+    ]),
     SupFlags = #{strategy => one_for_all,
                  intensity => 0,
                  period => 1},
     ChildSpecs = [
-        #{id => truck_update_handler,                         %% Identifying the child
-          start => {truck_update_handler, start_link, []},    %% Start the child with start_link/0
-          restart => permanent,                               %% Restart strategy
-          shutdown => 5000,                                   %% Shutdown timeout in ms
-          type => worker,                                     %% Declaring it a worker process
-          modules => [truck_update_handler]                   %% Modules that define this process
-   },
+        #{id => cowboy_http_listener,
+            start => {cowboy, start_clear, [http_listener, [{port, 8081}], #{
+                env => #{dispatch => Dispatch}
+            }]},
+            restart => permanent,
+            shutdown => 5000,
+            type => worker,
+            modules => [cowboy]
+    },  
         #{id => truck_update_server,
           start => {truck_update_server, start_link, []},
           restart => permanent,

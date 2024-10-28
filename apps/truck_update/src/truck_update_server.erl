@@ -1,6 +1,6 @@
 %% truck_update.erl
 -module(truck_update_server).
--behaviour(gen_server).
+-behavior(gen_server).
 
 -export([start_link/0, update_location/3]).
 -export([init/1, handle_call/3, terminate/2]).
@@ -26,3 +26,8 @@ handle_call({update, TruckID, Lat, Long}, _From, State) ->
             ok = db_client:insert_truck(NewTruck),
             {reply, {ok, inserted}, State}
     end.
+
+terminate(_Reason, Connection) ->
+    %% Close the database connection
+    database_client:disconnect(Connection),
+    ok.
