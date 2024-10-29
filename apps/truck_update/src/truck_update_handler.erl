@@ -8,15 +8,18 @@
 init(Req=#{method := <<"POST">>}, State) ->
 
     {ok, Body, Req1} = cowboy_req:read_body(Req),
+    io:format("DATA: ~p~n", [Body]),
     ParsedData = jiffy:decode(Body, [return_maps]),
+    io:format("DATA: ~p~n", [ParsedData]),
+
 
     %% Extract values
-    TruckID = maps:get(<<"truckID">>, ParsedData),
-    Lat = maps:get(<<"lat">>, maps:get(<<"loc">>, ParsedData)),
-    Long = maps:get(<<"long">>, maps:get(<<"loc">>, ParsedData)),
+    TruckID = maps:get(<<"truckId">>, ParsedData),
+    Lat = maps:get(<<"lat">>, maps:get(<<"location">>, ParsedData)),
+    Long = maps:get(<<"long">>, maps:get(<<"location">>, ParsedData)),
 
     %% Call the truck_update server
-    Result = truck_update:update_location(TruckID, Lat, Long),
+    Result = truck_update_server:update_location(TruckID, Lat, Long),
 
     %% Prepare and send response
     Response = case Result of

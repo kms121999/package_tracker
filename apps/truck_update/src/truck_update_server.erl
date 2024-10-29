@@ -12,19 +12,26 @@ update_location(TruckID, Lat, Long) ->
     gen_server:call(?MODULE, {update, TruckID, Lat, Long}).
 
 init([]) ->
-    {ok, #{}}.
+    case database_client:connect() of
+        {ok, Connection} ->
+            io:format("Connected to database database for retrieval with connection: ~p~n", [Connection]),
+            {ok, Connection};  %% Pass connection as the initial state
+        {error, Reason} ->
+            io:format("Failed to connect to database database. Reason: ~p~n", [Reason]),
+            {stop, Reason}  %% Stop the gen_server if connection fails
+    end.
 
-handle_call({update, TruckID, Lat, Long}, _From, State) ->
+handle_call({update, TruckID, Lat, Long}, _From, Connection) ->
     %% Simulate interaction with db_client here
-    case db_client:find_truck(TruckID) of
+    case database_client:get(Connection, <<"trucks">>, TruckID) of
         {ok, Truck} ->
             UpdatedTruck = Truck#{latitude => Lat, longitude => Long},
-            ok = db_client:update_truck(UpdatedTruck),
-            {reply, {ok, updated}, State};
-        error ->
+            ok = database_client:put(Connection, <<"trucks">>, TruckID, UpdatedTruck),
+            {reply, {ok, updated}, Connection};
+        {error, not_found} ->
             NewTruck = #{id => TruckID, latitude => Lat, longitude => Long},
-            ok = db_client:insert_truck(NewTruck),
-            {reply, {ok, inserted}, State}
+            ok = database_client:put(Connection, <<"trucks">>, TruckID, NewTruck),
+            {reply, {ok, inserted}, Connection}
     end.
 
 terminate(_Reason, Connection) ->
