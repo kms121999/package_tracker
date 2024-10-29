@@ -1,5 +1,5 @@
 %% package_update_handler.erl
--module(package_update_handler).
+-module(package_update_server).
 -export([init/2, terminate/3]).
 -behaviour(cowboy_handler).
 
