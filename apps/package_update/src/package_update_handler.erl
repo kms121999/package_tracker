@@ -12,9 +12,10 @@ init(Req=#{method := <<"POST">>}, State) ->
 
     %% Extract values
     PackageID = maps:get(<<"packageID">>, ParsedData),
+    Data = maps:remove(PackageID, ParsedData),
     
     %% Call the package_update server
-    Result = package_update:update_location(PackageID),
+    Result = package_update:update_location(PackageID, Data),
 
     %% Prepare and send response
     Response = case Result of
