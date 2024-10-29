@@ -5,7 +5,10 @@
   {mod, {package_tracker_app, []}},
   {applications,
    [kernel,
-    stdlib
+    stdlib,
+    cowboy,
+    truck_update,
+    package_get
    ]},
   {env,[]},
   {modules, []},
