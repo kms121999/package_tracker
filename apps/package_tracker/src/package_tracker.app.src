@@ -8,7 +8,8 @@
     stdlib,
     cowboy,
     truck_update,
-    package_get
+    package_get,
+    package_update
    ]},
   {env,[]},
   {modules, []},
