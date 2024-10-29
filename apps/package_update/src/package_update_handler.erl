@@ -16,7 +16,7 @@ init(Req=#{method := <<"POST">>}, State) ->
     Long = maps:get(<<"long">>, maps:get(<<"loc">>, ParsedData)),
 
     %% Call the package_update server
-    Result = package_update:update_location(package_D, Lat, Long),
+    Result = package_update:update_location(PackageID, Lat, Long),
 
     %% Prepare and send response
     Response = case Result of
