@@ -35,15 +35,6 @@ init([]) ->
                  intensity => 0,
                  period => 1},
     ChildSpecs = [
-        #{id => cowboy_http_listener,
-            start => {cowboy, start_clear, [http_listener, [{port, 8081}], #{
-                env => #{dispatch => Dispatch}
-            }]},
-            restart => permanent,
-            shutdown => 5000,
-            type => worker,
-            modules => [cowboy]
-    },  
         #{id => truck_update_server,
           start => {truck_update_server, start_link, []},
           restart => permanent,
