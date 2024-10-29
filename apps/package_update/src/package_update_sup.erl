@@ -30,13 +30,6 @@ init([]) ->
                  intensity => 0,
                  period => 1},
     ChildSpecs = [
-        #{id => package_update_handler,                       %% Identifying the child
-          start => {package_update_handler, start_link, []},  %% Start the child with start_link/0
-          restart => permanent,                               %% Restart strategy
-          shutdown => 5000,                                   %% Shutdown timeout in ms
-          type => worker,                                     %% Declaring it a worker process
-          modules => [package_update_handler]                 %% Modules that define this process
-   },
         #{id => package_update_server,
           start => {package_update_server, start_link, []},
           restart => permanent,
