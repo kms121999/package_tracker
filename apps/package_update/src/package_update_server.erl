@@ -19,7 +19,7 @@ handle_call({update, PackageID, Lat, Long}, _From, State) ->
     %% Simulate interaction with db_client here
     case db_client:find_package(PackageID) of
         {ok, Package} ->
-            UpdatedPackage = Truck#{latitude => Lat, longitude => Long},
+            UpdatedPackage = Package#{latitude => Lat, longitude => Long},
             ok = db_client:update_package(UpdatedPackage),
             {reply, {ok, updated}, State};
         error ->
