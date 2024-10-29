@@ -12,9 +12,7 @@ init(Req=#{method := <<"POST">>}, State) ->
 
     %% Extract values
     PackageID = maps:get(<<"packageID">>, ParsedData),
-    Lat = maps:get(<<"lat">>, maps:get(<<"loc">>, ParsedData)),
-    Long = maps:get(<<"long">>, maps:get(<<"loc">>, ParsedData)),
-
+    
     %% Call the package_update server
     Result = package_update:update_location(PackageID),
 
