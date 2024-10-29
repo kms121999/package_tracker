@@ -27,10 +27,6 @@ start_link() ->
 %%                  modules => modules()}   % optional
 init([]) ->
     %% Define the child specification for Cowboy
-    Dispatch = cowboy_router:compile([
-                {'_', [{"/truck/:truck_id", truck_update_handler, []}]}
-    % {"packages.localhost", [{"/:package_id", package_get_handler, []}]}
-    ]),
     SupFlags = #{strategy => one_for_all,
                  intensity => 0,
                  period => 1},
