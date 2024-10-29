@@ -1,51 +1,34 @@
-%% package_update_handler.erl
+%% package_update.erl
 -module(package_update_server).
--export([init/2, terminate/3]).
--behaviour(cowboy_handler).
+-behavior(gen_server).
 
+-export([start_link/0, update_location/3]).
 
+-export([init/1, handle_call/3, terminate/2]).
 
-init(Req=#{method := <<"POST">>}, State) ->
+start_link() ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
-    {ok, Body, Req1} = cowboy_req:read_body(Req),
-    ParsedData = jiffy:decode(Body, [return_maps]),
+update_location(packageID, Lat, Long) ->
+    gen_server:call(?MODULE, {update, packageID, Lat, Long}).
 
-    %% Extract values
-    packageID = maps:get(<<"packageID">>, ParsedData),
-    Lat = maps:get(<<"lat">>, maps:get(<<"loc">>, ParsedData)),
-    Long = maps:get(<<"long">>, maps:get(<<"loc">>, ParsedData)),
+init([]) ->
+    {ok, #{}}.
 
-    %% Call the package_update server
-    Result = package_update:update_location(packageID, Lat, Long),
+handle_call({update, PackageID, Lat, Long}, _From, State) ->
+    %% Simulate interaction with db_client here
+    case db_client:find_package(PackageID) of
+        {ok, Package} ->
+            UpdatedPackage = Truck#{latitude => Lat, longitude => Long},
+            ok = db_client:update_package(UpdatedPackage),
+            {reply, {ok, updated}, State};
+        error ->
+            NewPackage = #{id => PackageID, latitude => Lat, longitude => Long},
+            ok = db_client:package(NewPackage),
+            {reply, {ok, inserted}, State}
+    end.
 
-    %% Prepare and send response
-    Response = case Result of
-        {ok, Status} -> {200, #{status => Status}};
-        {error, Reason} -> {500, #{error => Reason}}
-    end,
-    {StatusCode, RespBody} = Response,
-    {ok, Req2} = cowboy_req:reply(StatusCode, #{<<"content-type">> => <<"application/json">>}, jiffy:encode(RespBody), Req1),
-    {ok, Req2, State};
-
-
-init(Req0, State) ->
-    Req1 = cowboy_req:reply(405, #{
-        <<"allow">> => <<"POST">>
-    }, Req0),
-    {ok, Req1, State}.
-
-terminate(_Reason, _Req, _State) ->
+terminate(_Reason, Connection) ->
+    %% Close the database connection
+    database_client:disconnect(Connection),
     ok.
-
-
-
-
-
-
-%%% Only include the eunit testing library and functions
-%%% in the compiled code if testing is 
-%%% being done.
--ifdef(TEST).
--include_lib("eunit/include/eunit.hrl").
- 
--endif.
