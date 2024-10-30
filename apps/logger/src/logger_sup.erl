@@ -3,7 +3,7 @@
 %% @end
 %%%-------------------------------------------------------------------
 
--module(package_get_sup).
+-module(logger_sup).
 
 -behavior(supervisor).
 
@@ -31,21 +31,12 @@ init([]) ->
                  intensity => 0,
                  period => 1},
     ChildSpecs = [
-        % #{id => cowboy_http_listener,
-        %     start => {cowboy, start_clear, [http_listener, [{port, 8080}], #{
-        %         env => #{dispatch => Dispatch}
-        %     }]},
-        %     restart => permanent,
-        %     shutdown => 5000,
-        %     type => worker,
-        %     modules => [cowboy]
-        % },
-        #{id => package_get_server,
-          start => {package_get_server, start_link, []},
+        #{id => logger_server,
+          start => {logger_server, start_link, []},
           restart => permanent,
           shutdown => 5000,
           type => worker,
-          modules => [package_get_server]
+          modules => [logger_server]
         }
     ],
     
