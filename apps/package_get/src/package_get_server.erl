@@ -36,7 +36,14 @@ handle_call({get_package_data, PackageId}, _From, Connection) ->
     case database_client:get(Connection, <<"packages">>, PackageId) of
         {ok, Data} ->
             %% Found the package data, return it
-            {reply, {ok, Data}, Connection};
+            case database_client:get(Connection, <<"trucks">>, maps:get(truckId, Data)) of
+                {ok, TruckData} ->
+                    {reply, {ok, maps:put(location, TruckData, Data)}, Connection};
+                {error, not_found} ->
+                    {reply, {ok, maps:put(location, nil, Data)}, Connection};
+                {error, Reason} ->
+                    {error, Reason}
+            end;
         {error, not_found} ->
             %% Handle the case where the package is not found
             io:format("Package ~p not found in database~n", [PackageId]),
@@ -112,7 +119,7 @@ cleanup(Pid) ->
     meck:unload(database_client).
 
 test_package_found()->
-    PackageData = #{
+    StoredPackageData = #{
         sender => "Alice", 
         receiver => "Bob", 
         destination => 
@@ -129,26 +136,49 @@ test_package_found()->
                 country => "England" }, 
         status => "in transit", 
         priority => "overnight", 
-        truckId => "truck123", 
+        truckId => "truck123"
+    },
+
+    StoredPackageDataFakeTruck = maps:put(truckId, "faketruck", StoredPackageData),
+    FinalPackageDataFakeTruck = maps:put(location, nil, StoredPackageDataFakeTruck),
+
+    StoredPackageDataTruckFail = maps:put(truckId, "truckfail", StoredPackageData),
+
+    FinalPackageData = maps:put(location, #{
         longitude => "-72.532", 
         latitude => "42.532"
-    },
+    }, StoredPackageData),
     
 	 %% Mock the get function to return package data when requested
     meck:expect(database_client, get, 3, 
         fun (_Connection, <<"packages">>, <<"package123">>) ->
-                {ok, PackageData};
+                {ok, StoredPackageData};
+            (_Connection, <<"trucks">>, <<"truck123">>) ->
+                {ok, #{
+                    longitude => "-72.532", 
+                    latitude => "42.532"
+                }};
             (_Connection, <<"packages">>, <<"fakepackage">>) ->
                 {error, not_found};
+            (_Connection, <<"trucks">>, <<"faketruck">>) ->
+                {error, not_found};
+            (_Connection, <<"packages">>, <<"package123-faketruck">>) ->
+                {ok, StoredPackageDataFakeTruck};
+            (_Connection, <<"packages">>, <<"package123-truckfail">>) ->
+                {ok, StoredPackageDataTruckFail};
+            (_Connection, <<"trucks">>, <<"databasedown">>) ->
+                {error, "Database down"};
             (_Connection, <<"packages">>, <<"databasedown">>) ->
                 {error, "Database down"}
         end
 	),
 
 	% happy thoughts
-    ?assertEqual({ok, PackageData}, get_package_data(<<"package123">>)),
+    ?assertEqual({ok, FinalPackageData}, get_package_data(<<"package123">>)),
+	?assertEqual({ok, FinalPackageDataFakeTruck}, get_package_data(<<"package123-fakeTruck">>)),
     % nasty thoughts start here
 	?assertEqual({error, not_found}, get_package_data(<<"fakepackage">>)),
+    ?assertEqual({error, "Database down"}, get_package_data(<<"package123-truckfail">>)),
 	?assertEqual({error, "Database down"}, get_package_data(<<"databasedown">>)).
 
 -endif.
