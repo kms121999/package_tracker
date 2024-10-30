@@ -17,9 +17,32 @@ put(Connection, Bucket, Key, Data) ->
 get(Connection, Bucket, Key) ->
     %% Example of getting data (mocked for now)
     io:format("Getting data from Riak: Connection=~p, Bucket=~p, Key=~p~n", [Connection, Bucket, Key]),
-    case Key of
-        <<"Truck123">> ->
+
+    PackageData = #{
+        sender => "Alice", 
+        receiver => "Bob", 
+        destination => 
+            #{ street => "123 Cat Lane", 
+                city => "Wonderland", 
+                state => "NY", 
+                zip => "12345", 
+                country => "USA" }, 
+        returnAddress => 
+            #{ street => "456 Yellow Brick Rd", 
+                city => "OZ", 
+                state => "KS", 
+                zip => "54321", 
+                country => "England" }, 
+        status => "in transit", 
+        priority => "overnight", 
+        truckId => "truck123"
+    },
+
+    case {Bucket, Key} of
+        {<<"trucks">>, <<"truck123">>} ->
             {ok, #{<<"longitude">> => -73.935242, <<"latitude">> => 40.730610}};
+        {<<"packages">>, <<"package123">>} ->
+            {ok, PackageData};
         _ ->
             {error, not_found}
     end.
