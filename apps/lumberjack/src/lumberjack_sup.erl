@@ -31,13 +31,13 @@ init([]) ->
                  intensity => 0,
                  period => 1},
     ChildSpecs = [
-        % #{id => lumberjack_server,
-        %   start => {lumberjack_server, start_link, []},
-        %   restart => permanent,
-        %   shutdown => 5000,
-        %   type => worker,
-        %   modules => [lumberjack_server]
-        % }
+        #{id => lumberjack_server,
+          start => {lumberjack_server, start_link, []},
+          restart => permanent,
+          shutdown => 5000,
+          type => worker,
+          modules => [lumberjack_server]
+        }
     ],
     
     {ok, {SupFlags, ChildSpecs}}.
