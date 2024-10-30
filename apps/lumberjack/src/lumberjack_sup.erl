@@ -3,7 +3,7 @@
 %% @end
 %%%-------------------------------------------------------------------
 
--module(logger_sup).
+-module(lumberjack_sup).
 
 -behavior(supervisor).
 
@@ -31,13 +31,13 @@ init([]) ->
                  intensity => 0,
                  period => 1},
     ChildSpecs = [
-        #{id => logger_server,
-          start => {logger_server, start_link, []},
-          restart => permanent,
-          shutdown => 5000,
-          type => worker,
-          modules => [logger_server]
-        }
+        % #{id => lumberjack_server,
+        %   start => {lumberjack_server, start_link, []},
+        %   restart => permanent,
+        %   shutdown => 5000,
+        %   type => worker,
+        %   modules => [lumberjack_server]
+        % }
     ],
     
     {ok, {SupFlags, ChildSpecs}}.

@@ -1,8 +1,8 @@
-{application, logger,
+{application, lumberjack,
  [{description, "An OTP application"},
   {vsn, "0.1.0"},
   {registered, []},
-  {mod, {logger_app, []}},
+  {mod, {lumberjack_app, []}},
   {applications,
    [kernel,
     stdlib

@@ -1,16 +1,16 @@
 %%%-------------------------------------------------------------------
-%% @doc logger public API
+%% @doc lumberjack public API
 %% @end
 %%%-------------------------------------------------------------------
 
--module(logger_app).
+-module(lumberjack_app).
 
 -behavior(application).
 
 -export([start/2, stop/1]).
 
 start(_StartType, _StartArgs) ->
-    logger_sup:start_link().
+    lumberjack_sup:start_link().
 
 stop(_State) ->
     ok.
