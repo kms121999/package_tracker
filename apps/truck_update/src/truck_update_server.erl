@@ -53,14 +53,14 @@ terminate(_Reason, Connection) ->
 
 
 
-%% Test for package retrieval success and failure using mocked database_client
-package_retrieval_test_() ->
+%% Test for truck update success and failure using mocked database_client
+truck_update_test_() ->
     %% Setup test context
     {setup,
         fun setup/0, 
         fun cleanup/1, 
         [
-            fun test_package_found/0
+            fun test_truck_update/0
         ]
     }.
 
@@ -75,58 +75,38 @@ setup() ->
     %% Mock the disconnect function
     meck:expect(database_client, disconnect, 1, ok),
     
-    %% Start the package_get_server service
-    {ok, Pid} = package_get_server:start_link(),
+    %% Start the truck_update_server service
+    {ok, Pid} = truck_update_server:start_link(),
     
     %% Return the Pid to use in cleanup
     Pid.
 
 %% Cleanup function to unload the mocks
 cleanup(Pid) ->
-    %% Stop the package_get_server process
+    %% Stop the truck_update_server process
     gen_server:stop(Pid),
     
     %% Unload the meck mock for database_client
     meck:unload(database_client).
 
-test_package_found()->
-    PackageData = #{
-        sender => "Alice", 
-        receiver => "Bob", 
-        destination => 
-            #{ street => "123 Cat Lane", 
-                city => "Wonderland", 
-                state => "NY", 
-                zip => "12345", 
-                country => "USA" }, 
-        returnAddress => 
-            #{ street => "456 Yellow Brick Rd", 
-                city => "OZ", 
-                state => "KS", 
-                zip => "54321", 
-                country => "England" }, 
-        status => "in transit", 
-        priority => "overnight", 
-        truckId => "truck123", 
-        longitude => "-72.532", 
-        latitude => "42.532"
-    },
+test_truck_update()->
     
-	 %% Mock the get function to return package data when requested
+	 %% Mock the get function to return truck data when requested
     meck:expect(database_client, get, 3, 
-        fun (_Connection, <<"packages">>, <<"package123">>) ->
-                {ok, PackageData};
-            (_Connection, <<"packages">>, <<"fakepackage">>) ->
-                {error, not_found};
-            (_Connection, <<"packages">>, <<"databasedown">>) ->
+        fun (_Connection, <<"trucks">>, <<"Truck123">>) ->
+                {ok, updated};
+            (_Connection, <<"trucks">>, <<"Truck321">>) ->
+                {ok, inserted};
+            (_Connection, <<"trucks">>, <<"databasedown">>) ->
                 {error, "Database down"}
         end
 	),
 
 	% happy thoughts
-    ?assertEqual({ok, PackageData}, get_package_data(<<"package123">>)),
+    ?assertEqual({ok, updated}, update_location(<<"truck123">>, -72.532, 42.532)),
+	?assertEqual({ok, inserted}, update_location(<<"Truck321">>, -72.532, 42.532)),
     % nasty thoughts start here
-	?assertEqual({error, not_found}, get_package_data(<<"fakepackage">>)),
-	?assertEqual({error, "Database down"}, get_package_data(<<"databasedown">>)).
+	?assertEqual({error, "Database down"}, update_location(<<"databasedown">>, -72.532, 42.532)).
+
 
 -endif.
