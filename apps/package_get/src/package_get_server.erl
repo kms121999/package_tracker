@@ -36,13 +36,13 @@ handle_call({get_package_data, PackageId}, _From, Connection) ->
     case database_client:get(Connection, <<"packages">>, PackageId) of
         {ok, Data} ->
             %% Found the package data, return it
-            case database_client:get(Connection, <<"trucks">>, maps:get(truckId, Data)) of
+            case database_client:get(Connection, <<"trucks">>, maps:get(<<"truckId">>, Data)) of
                 {ok, TruckData} ->
-                    {reply, {ok, maps:put(location, TruckData, Data)}, Connection};
+                    {reply, {ok, maps:put(<<"location">>, TruckData, Data)}, Connection};
                 {error, not_found} ->
-                    {reply, {ok, maps:put(location, nil, Data)}, Connection};
+                    {reply, {ok, maps:put(<<"location">>, null, Data)}, Connection};
                 {error, Reason} ->
-                    {error, Reason}
+                    {reply, {error, Reason}, Connection}
             end;
         {error, not_found} ->
             %% Handle the case where the package is not found
@@ -120,33 +120,33 @@ cleanup(Pid) ->
 
 test_package_found()->
     StoredPackageData = #{
-        sender => "Alice", 
-        receiver => "Bob", 
-        destination => 
-            #{ street => "123 Cat Lane", 
-                city => "Wonderland", 
-                state => "NY", 
-                zip => "12345", 
-                country => "USA" }, 
-        returnAddress => 
-            #{ street => "456 Yellow Brick Rd", 
-                city => "OZ", 
-                state => "KS", 
-                zip => "54321", 
-                country => "England" }, 
-        status => "in transit", 
-        priority => "overnight", 
-        truckId => "truck123"
+        <<"sender">> => <<"Alice">>, 
+        <<"receiver">> => <<"Bob">>, 
+        <<"destination">> => 
+            #{ <<"street">> => <<"123 Cat Lane">>, 
+                <<"city">> => <<"Wonderland">>, 
+                <<"state">> => <<"NY">>, 
+                <<"zip">> => <<"12345">>, 
+                <<"country">> => <<"USA">> }, 
+        <<"returnAddress">> => 
+            #{ <<"street">> => <<"456 Yellow Brick Rd">>, 
+                <<"city">> => <<"OZ">>, 
+                <<"state">> => <<"KS">>, 
+                <<"zip">> => <<"54321">>, 
+                <<"country">> => <<"England">> }, 
+        <<"status">> => <<"in transit">>, 
+        <<"priority">> => <<"overnight">>, 
+        <<"truckId">> => <<"truck123">>
     },
 
-    StoredPackageDataFakeTruck = maps:put(truckId, "faketruck", StoredPackageData),
-    FinalPackageDataFakeTruck = maps:put(location, nil, StoredPackageDataFakeTruck),
+    StoredPackageDataFakeTruck = maps:put(<<"truckId">>, <<"faketruck">>, StoredPackageData),
+    FinalPackageDataFakeTruck = maps:put(<<"location">>, null, StoredPackageDataFakeTruck),
 
-    StoredPackageDataTruckFail = maps:put(truckId, "truckfail", StoredPackageData),
+    StoredPackageDataTruckFail = maps:put(<<"truckId">>, <<"databasedown">>, StoredPackageData),
 
-    FinalPackageData = maps:put(location, #{
-        longitude => "-72.532", 
-        latitude => "42.532"
+    FinalPackageData = maps:put(<<"location">>, #{
+        <<"long">> => -72.532, 
+        <<"lat">> => 42.532
     }, StoredPackageData),
     
 	 %% Mock the get function to return package data when requested
@@ -154,10 +154,7 @@ test_package_found()->
         fun (_Connection, <<"packages">>, <<"package123">>) ->
                 {ok, StoredPackageData};
             (_Connection, <<"trucks">>, <<"truck123">>) ->
-                {ok, #{
-                    longitude => "-72.532", 
-                    latitude => "42.532"
-                }};
+                {ok, maps:get(<<"location">>, FinalPackageData)};
             (_Connection, <<"packages">>, <<"fakepackage">>) ->
                 {error, not_found};
             (_Connection, <<"trucks">>, <<"faketruck">>) ->
@@ -175,7 +172,7 @@ test_package_found()->
 
 	% happy thoughts
     ?assertEqual({ok, FinalPackageData}, get_package_data(<<"package123">>)),
-	?assertEqual({ok, FinalPackageDataFakeTruck}, get_package_data(<<"package123-fakeTruck">>)),
+	?assertEqual({ok, FinalPackageDataFakeTruck}, get_package_data(<<"package123-faketruck">>)),
     % nasty thoughts start here
 	?assertEqual({error, not_found}, get_package_data(<<"fakepackage">>)),
     ?assertEqual({error, "Database down"}, get_package_data(<<"package123-truckfail">>)),
