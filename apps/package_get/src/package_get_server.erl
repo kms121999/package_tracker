@@ -15,6 +15,7 @@ start_link() ->
 
 %% Initialize the state, and connect to database database
 init([]) ->
+    lumberjack_server:info("Hello World", {"Operation result"}),
     %% Create the connection to the database database (assuming database_client:connect/0 exists)
     case database_client:connect() of
         {ok, Connection} ->
@@ -27,6 +28,7 @@ init([]) ->
 
 
 get_package_data(PackageId) ->
+        lumberjack_server:info("Hello World", {"Operation result"}),
 		%% Synchronous call to the gen_server to fetch package data
 		gen_server:call(?MODULE, {get_package_data, PackageId}).
 
