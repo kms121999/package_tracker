@@ -139,43 +139,44 @@ test_package_found()->
         <<"truckId">> => <<"truck123">>
     },
 
-    StoredPackageDataFakeTruck = maps:put(<<"truckId">>, <<"faketruck">>, StoredPackageData),
-    FinalPackageDataFakeTruck = maps:put(<<"location">>, null, StoredPackageDataFakeTruck),
-
-    StoredPackageDataTruckFail = maps:put(<<"truckId">>, <<"databasedown">>, StoredPackageData),
-
     FinalPackageData = maps:put(<<"location">>, #{
         <<"long">> => -72.532, 
         <<"lat">> => 42.532
     }, StoredPackageData),
+
+    StoredPackageDataBadTruck = maps:put(<<"truckId">>, <<"bad_truck">>, StoredPackageData),
+    FinalPackageDataBadTruck = maps:put(<<"location">>, null, StoredPackageDataBadTruck),
+
+    StoredPackageDataTruckDatabaseDown = maps:put(<<"truckId">>, <<"databasedown">>, StoredPackageData),
     
 	 %% Mock the get function to return package data when requested
     meck:expect(database_client, get, 3, 
         fun (_Connection, <<"packages">>, <<"package123">>) ->
                 {ok, StoredPackageData};
+            (_Connection, <<"packages">>, <<"package_with_bad_truck">>) ->
+                {ok, StoredPackageDataBadTruck};
+            (_Connection, <<"packages">>, <<"package_with_failed_truck_get">>) ->
+                {ok, StoredPackageDataTruckDatabaseDown};
+            (_Connection, <<"packages">>, <<"bad_package">>) ->
+                {error, not_found};
+            (_Connection, <<"packages">>, <<"databasedown">>) ->
+                {error, "Database down"};
+
             (_Connection, <<"trucks">>, <<"truck123">>) ->
                 {ok, maps:get(<<"location">>, FinalPackageData)};
-            (_Connection, <<"packages">>, <<"fakepackage">>) ->
+            (_Connection, <<"trucks">>, <<"bad_truck">>) ->
                 {error, not_found};
-            (_Connection, <<"trucks">>, <<"faketruck">>) ->
-                {error, not_found};
-            (_Connection, <<"packages">>, <<"package123-faketruck">>) ->
-                {ok, StoredPackageDataFakeTruck};
-            (_Connection, <<"packages">>, <<"package123-truckfail">>) ->
-                {ok, StoredPackageDataTruckFail};
             (_Connection, <<"trucks">>, <<"databasedown">>) ->
-                {error, "Database down"};
-            (_Connection, <<"packages">>, <<"databasedown">>) ->
                 {error, "Database down"}
         end
 	),
 
 	% happy thoughts
     ?assertEqual({ok, FinalPackageData}, get_package_data(<<"package123">>)),
-	?assertEqual({ok, FinalPackageDataFakeTruck}, get_package_data(<<"package123-faketruck">>)),
+	?assertEqual({ok, FinalPackageDataBadTruck}, get_package_data(<<"package_with_bad_truck">>)),
     % nasty thoughts start here
-	?assertEqual({error, not_found}, get_package_data(<<"fakepackage">>)),
-    ?assertEqual({error, "Database down"}, get_package_data(<<"package123-truckfail">>)),
+	?assertEqual({error, not_found}, get_package_data(<<"bad_package">>)),
+    ?assertEqual({error, "Database down"}, get_package_data(<<"package_with_failed_truck_get">>)),
 	?assertEqual({error, "Database down"}, get_package_data(<<"databasedown">>)).
 
 -endif.
