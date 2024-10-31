@@ -7,67 +7,73 @@
 -export([start_link/0, get_package_data/1]).
 
 %% gen_server callbacks
--export([init/1, handle_call/3, terminate/2, code_change/3]).
+-export([init/1, handle_call/3, handle_cast/2, terminate/2]).
 
 %% Start the server
 start_link() ->
+    lumberjack_server:info("Starting gen_server", #{module => ?MODULE}),
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% Initialize the state, and connect to database database
 init([]) ->
-    lumberjack_server:info("Hello World", {"Operation result"}),
+    lumberjack_server:info("Initializing gen_server", #{module => ?MODULE}),
     %% Create the connection to the database database (assuming database_client:connect/0 exists)
     case database_client:connect() of
         {ok, Connection} ->
-            io:format("Connected to database database for retrieval with connection: ~p~n", [Connection]),
+            lumberjack_server:info("Connected to database", #{module => ?MODULE, connection => Connection}),
             {ok, Connection};  %% Pass connection as the initial state
         {error, Reason} ->
-            io:format("Failed to connect to database database. Reason: ~p~n", [Reason]),
+            lumberjack_server:error("Failed to connect to database", #{module => ?MODULE, reason => Reason}),
             {stop, Reason}  %% Stop the gen_server if connection fails
     end.
 
 
 get_package_data(PackageId) ->
-        lumberjack_server:info("Hello World", {"Operation result"}),
+        lumberjack_server:info("Calling for package data", #{module => ?MODULE, packageId => PackageId}),
 		%% Synchronous call to the gen_server to fetch package data
 		gen_server:call(?MODULE, {get_package_data, PackageId}).
 
 %% Handle synchronous calls
 handle_call({get_package_data, PackageId}, _From, Connection) ->
+    lumberjack_server:info("Retrieving package data", #{module => ?MODULE, packageId => PackageId}),
     %% Query database for the package
     case database_client:get(Connection, <<"packages">>, PackageId) of
         {ok, Data} ->
             %% Found the package data, return it
-            case database_client:get(Connection, <<"trucks">>, maps:get(<<"truckId">>, Data)) of
+            TruckId = maps:get(<<"truckId">>, Data),
+            lumberjack_server:info("Retrieving truck data", #{module => ?MODULE, truckId => TruckId}),
+            case database_client:get(Connection, <<"trucks">>, TruckId) of
                 {ok, TruckData} ->
+                    lumberjack_server:info("Truck data retrieved", #{module => ?MODULE}),
                     {reply, {ok, maps:put(<<"location">>, TruckData, Data)}, Connection};
                 {error, not_found} ->
+                    lumberjack_server:warning("Truck data not found", #{module => ?MODULE, truckId => TruckId}),
                     {reply, {ok, maps:put(<<"location">>, null, Data)}, Connection};
                 {error, Reason} ->
+                    lumberjack_server:error("Error retrieving truck data", #{module => ?MODULE, truckId => TruckId, reason => Reason}),
                     {reply, {error, Reason}, Connection}
             end;
         {error, not_found} ->
             %% Handle the case where the package is not found
-            io:format("Package ~p not found in database~n", [PackageId]),
+            lumberjack_server:warning("Package not found", #{module => ?MODULE, packageId => PackageId}),
             {reply, {error, not_found}, Connection};
         {error, Reason} ->
             %% General error handling
-            io:format("Error retrieving package ~p from database. Reason: ~p~n", [PackageId, Reason]),
+            lumberjack_server:error("Error retrieving package", #{module => ?MODULE, packageId => PackageId, reason => Reason}),
             {reply, {error, Reason}, Connection}
     end.
+
+handle_cast(Msg, Connection) ->
+    lumberjack_server:warning("Unimplemented method called: handle_cast", #{module => ?MODULE, message => Msg}),
+    {noreply, Connection}.
 
 %% Handle the server termination (clean up)
 terminate(_Reason, Connection) ->
     %% Close the database connection
+    lumberjack_server:info("Terminating gen_server", #{module => ?MODULE}),
+    lumberjack_server:info("Disconnecting from database", #{module => ?MODULE}),
     database_client:disconnect(Connection),
     ok.
-
-%% Handle code upgrades (if needed)
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
-
-
-
 
 
 
@@ -77,12 +83,6 @@ code_change(_OldVsn, State, _Extra) ->
 %%% being done.
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
-
-% -include_lib("meck/include/meck.hrl").
- 
-
-
-
 
 %% Test for package retrieval success and failure using mocked database_client
 package_retrieval_test_() ->
