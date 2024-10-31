@@ -14,6 +14,7 @@
 %% Handle GET requests for full package data
 init(Req0=#{method := <<"GET">>}, State) ->
     %% Parse the package ID (or truck ID) from the request path
+    lumberjack_server:info("Got a request", #{module => ?MODULE, request => Req0}),
     PackageId = cowboy_req:binding(package_id, Req0),
     io:format("Got this~p~n", [PackageId]),
     io:format("From HOST: ~p~n", [cowboy_req:host(Req0)]),
