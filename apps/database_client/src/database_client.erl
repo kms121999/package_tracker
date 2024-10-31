@@ -19,30 +19,35 @@ get(Connection, Bucket, Key) ->
     io:format("Getting data from Riak: Connection=~p, Bucket=~p, Key=~p~n", [Connection, Bucket, Key]),
 
     PackageData = #{
-        sender => "Alice", 
-        receiver => "Bob", 
-        destination => 
-            #{ street => "123 Cat Lane", 
-                city => "Wonderland", 
-                state => "NY", 
-                zip => "12345", 
-                country => "USA" }, 
-        returnAddress => 
-            #{ street => "456 Yellow Brick Rd", 
-                city => "OZ", 
-                state => "KS", 
-                zip => "54321", 
-                country => "England" }, 
-        status => "in transit", 
-        priority => "overnight", 
-        truckId => "truck123"
+        <<"sender">> => <<"Alice">>, 
+        <<"receiver">> => <<"Bob">>, 
+        <<"destination">> => 
+            #{ <<"street">> => <<"123 Cat Lane">>, 
+                <<"city">> => <<"Wonderland">>, 
+                <<"state">> => <<"NY">>, 
+                <<"zip">> => <<"12345">>, 
+                <<"country">> => <<"USA">> }, 
+        <<"returnAddress">> => 
+            #{ <<"street">> => <<"456 Yellow Brick Rd">>, 
+                <<"city">> => <<"OZ">>, 
+                <<"state">> => <<"KS">>, 
+                <<"zip">> => <<"54321">>, 
+                <<"country">> => <<"England">> }, 
+        <<"status">> => <<"in transit">>, 
+        <<"priority">> => <<"overnight">>, 
+        <<"truckId">> => <<"truck123">>
     },
+
+    PackageDataFakeTruck = maps:put(<<"truckId">>, <<"faketruck">>, PackageData),
+
 
     case {Bucket, Key} of
         {<<"trucks">>, <<"truck123">>} ->
-            {ok, #{<<"longitude">> => -73.935242, <<"latitude">> => 40.730610}};
+            {ok, #{<<"long">> => -73.935242, <<"lat">> => 40.730610}};
         {<<"packages">>, <<"package123">>} ->
             {ok, PackageData};
+        {<<"packages">>, <<"faketruck">>} ->
+            {ok, PackageDataFakeTruck};
         _ ->
             {error, not_found}
     end.
