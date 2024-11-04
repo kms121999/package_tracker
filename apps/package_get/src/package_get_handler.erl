@@ -44,7 +44,7 @@ init(Req0=#{method := <<"GET">>}, State) ->
     end;
 
 init(Req0, State) ->
-    lumberjack_server:warning("Invalid request method", #{module => ?MODULE, method => Req0.method, peer_ip => cowboy_req:peer(Req0)}),
+    lumberjack_server:warning("Invalid request method", #{module => ?MODULE, method => cowboy_req:method(Req0), peer_ip => cowboy_req:peer(Req0)}),
     Req1 = cowboy_req:reply(405, #{
         <<"allow">> => <<"GET">>
     }, Req0),
