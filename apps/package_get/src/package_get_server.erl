@@ -174,11 +174,11 @@ test_package_found()->
 	),
 
 	% happy thoughts
-    ?assertEqual({ok, FinalPackageData}, get_package_data(<<"package123">>)),
-	?assertEqual({ok, FinalPackageDataBadTruck}, get_package_data(<<"package_with_bad_truck">>)),
+    ?assertEqual({ok, FinalPackageData}, get_package_data(<<"package123">>, "req123")),
+	?assertEqual({ok, FinalPackageDataBadTruck}, get_package_data(<<"package_with_bad_truck">>, "req123")),
     % nasty thoughts start here
-	?assertEqual({error, not_found}, get_package_data(<<"bad_package">>)),
-    ?assertEqual({error, "Database down"}, get_package_data(<<"package_with_failed_truck_get">>)),
-	?assertEqual({error, "Database down"}, get_package_data(<<"databasedown">>)).
+	?assertEqual({error, not_found}, get_package_data(<<"bad_package">>, "req123")),
+    ?assertEqual({error, "Database down"}, get_package_data(<<"package_with_failed_truck_get">>, "req123")),
+	?assertEqual({error, "Database down"}, get_package_data(<<"databasedown">>, "req123")).
 
 -endif.
