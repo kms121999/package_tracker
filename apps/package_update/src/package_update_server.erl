@@ -18,14 +18,13 @@ init([]) ->
 handle_call({update, PackageID, Package_data}, _From, State) ->
     %% Simulate interaction with db_client here
     case database_client:get(State, <<"packages">>, PackageID) of
-        {ok, _Package} ->
+        ok ->
             
             case database_client:put(State, <<"packages">>, PackageID, Package_data) of
-                {ok, _Updated} ->
-                    {reply, {ok, updated}, State};
+                ok ->
+                    {reply, ok, State};
                 {error, _Reason} ->
                     {reply, {error, database_error}, State}
-                % {reply, {ok, updated}, State}
                 end;
             
         {error, not_found} ->
@@ -99,7 +98,7 @@ test_package_found()->
 
     meck:expect(database_client, get, 3, 
         fun (_Connection, <<"packages">>, <<"package123">>) ->
-                {ok, StoredPackageData};
+                ok;
             (_Connection, <<"packages">>, <<"bad_package">>) ->
                 {error, not_found};
             (_Connection, <<"packages">>, <<"databasedown">>) ->
@@ -110,7 +109,7 @@ test_package_found()->
 
     meck:expect(database_client, put, 4, 
         fun (_Connection, <<"packages">>, <<"package123">>, StoredData) ->
-                {ok, StoredPackageData};
+                ok;
             (_Connection, <<"packages">>, <<"bad_package">>, StoredData) ->
                 {error, StoredPackageData};
             (_Connection, <<"packages">>, <<"databasedown">>, StoredData) ->
