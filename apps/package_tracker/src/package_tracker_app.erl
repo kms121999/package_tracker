@@ -10,6 +10,13 @@
 -export([start/2, stop/1]).
 
 start(_StartType, _StartArgs) ->
+    Middlewares = [
+        req_id_middleware,
+        logger_middleware,
+        cowboy_router,
+        cowboy_handler
+    ],
+
     Dispatch = cowboy_router:compile([
         {'_', [
             {"/package/:package_id", package_get_handler, []},
@@ -20,7 +27,8 @@ start(_StartType, _StartArgs) ->
     ]),
 
     {ok, _} = cowboy:start_clear(http_listener, [{port, 8080}], #{
-        env => #{dispatch => Dispatch}
+        env => #{dispatch => Dispatch},
+        middlewares => Middlewares
     }),
 
     % TODO, setup ssl
