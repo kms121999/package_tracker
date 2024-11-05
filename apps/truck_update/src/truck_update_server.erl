@@ -24,7 +24,7 @@ init([]) ->
 handle_cast({update, TruckID, Lat, Long}, _From, Connection) ->
     %% Simulate interaction with db_client here
     case database_client:get(Connection, <<"trucks">>, TruckID) of
-        {ok, Truck} ->
+        {ok, Truck} when is_map(Truck) ->  % Ensure Truck is a map
             UpdatedTruck = Truck#{latitude => Lat, longitude => Long},
             case database_client:put(Connection, <<"trucks">>, TruckID, UpdatedTruck) of
                 {ok, _Updated} ->
@@ -74,6 +74,22 @@ truck_update_test_() ->
     }.
 
 %% Setup function to mock database_client before each test
+% setup() ->
+%     %% Start mocking the database_client module
+%     meck:new(database_client),
+    
+%     %% Mock the connect function to always succeed
+%     meck:expect(database_client, connect, 0, {ok, mock_connection}),
+    
+%     %% Mock the disconnect function
+%     meck:expect(database_client, disconnect, 1, ok),
+    
+%     %% Start the truck_update_server service
+%     {ok, Pid} = truck_update_server:start_link(),
+    
+%     %% Return the Pid to use in cleanup
+%     Pid.
+
 setup() ->
     %% Start mocking the database_client module
     meck:new(database_client),
@@ -83,12 +99,31 @@ setup() ->
     
     %% Mock the disconnect function
     meck:expect(database_client, disconnect, 1, ok),
-    
+
+    %% Mock the get function for retrieving trucks
+    meck:expect(database_client, get, 3, 
+        fun (_Connection, <<"trucks">>, <<"truck123">>) ->
+                {ok, #{latitude => 0.0, longitude => 0.0}};
+            (_Connection, <<"trucks">>, <<"truck321">>) ->
+                {error, not_found};
+            (_Connection, <<"trucks">>, <<"databasedown">>) ->
+                {error, "Database down"}
+        end
+    ),
+
+    %% Mock the put function to simulate database updates and inserts
+    meck:expect(database_client, put, 4, 
+        fun (_Connection, <<"trucks">>, _TruckID, _TruckData) ->
+            ok
+        end
+    ),
+
     %% Start the truck_update_server service
     {ok, Pid} = truck_update_server:start_link(),
-    
+
     %% Return the Pid to use in cleanup
     Pid.
+
 
 %% Cleanup function to unload the mocks
 cleanup(Pid) ->
@@ -115,7 +150,7 @@ test_truck_update()->
     ?assertEqual({ok, updated}, update_location(<<"truck123">>, -72.532, 42.532)),
 	?assertEqual({ok, inserted}, update_location(<<"truck321">>, -72.532, 42.532)),
     % nasty thoughts start here
-	?assertEqual({error, "Database down"}, update_location(<<"databasedown">>, -72.532, 42.532)).
+	?assertEqual({error, "database down"}, update_location(<<"databasedown">>, -72.532, 42.532)).
 
 
 -endif.

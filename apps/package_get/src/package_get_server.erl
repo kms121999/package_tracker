@@ -4,7 +4,7 @@
 -behavior(gen_server).
 
 %% API
--export([start_link/0, get_package_data/1]).
+-export([start_link/0, get_package_data/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, terminate/2]).
@@ -28,38 +28,38 @@ init([]) ->
     end.
 
 
-get_package_data(PackageId) ->
-        lumberjack_server:info("Calling for package data", #{module => ?MODULE, packageId => PackageId}),
+get_package_data(PackageId, Req_id) ->
+        lumberjack_server:info("Calling for package data", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
 		%% Synchronous call to the gen_server to fetch package data
-		gen_server:call(?MODULE, {get_package_data, PackageId}).
+		gen_server:call(?MODULE, {get_package_data, PackageId, Req_id}).
 
 %% Handle synchronous calls
-handle_call({get_package_data, PackageId}, _From, Connection) ->
-    lumberjack_server:info("Retrieving package data", #{module => ?MODULE, packageId => PackageId}),
+handle_call({get_package_data, PackageId, Req_id}, _From, Connection) ->
+    lumberjack_server:info("Retrieving package data", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
     %% Query database for the package
     case database_client:get(Connection, <<"packages">>, PackageId) of
         {ok, Data} ->
             %% Found the package data, return it
             TruckId = maps:get(<<"truckId">>, Data),
-            lumberjack_server:info("Retrieving truck data", #{module => ?MODULE, truckId => TruckId}),
+            lumberjack_server:info("Retrieving truck data", #{module => ?MODULE, truckId => TruckId, req_id => Req_id}),
             case database_client:get(Connection, <<"trucks">>, TruckId) of
                 {ok, TruckData} ->
-                    lumberjack_server:info("Truck data retrieved", #{module => ?MODULE}),
+                    lumberjack_server:info("Truck data retrieved", #{module => ?MODULE, req_id => Req_id}),
                     {reply, {ok, maps:put(<<"location">>, TruckData, Data)}, Connection};
                 {error, not_found} ->
-                    lumberjack_server:warning("Truck data not found", #{module => ?MODULE, truckId => TruckId}),
+                    lumberjack_server:warning("Truck data not found", #{module => ?MODULE, truckId => TruckId, req_id => Req_id}),
                     {reply, {ok, maps:put(<<"location">>, null, Data)}, Connection};
                 {error, Reason} ->
-                    lumberjack_server:error("Error retrieving truck data", #{module => ?MODULE, truckId => TruckId, reason => Reason}),
+                    lumberjack_server:error("Error retrieving truck data", #{module => ?MODULE, truckId => TruckId, reason => Reason, req_id => Req_id}),
                     {reply, {error, Reason}, Connection}
             end;
         {error, not_found} ->
             %% Handle the case where the package is not found
-            lumberjack_server:warning("Package not found", #{module => ?MODULE, packageId => PackageId}),
+            lumberjack_server:warning("Package not found", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
             {reply, {error, not_found}, Connection};
         {error, Reason} ->
             %% General error handling
-            lumberjack_server:error("Error retrieving package", #{module => ?MODULE, packageId => PackageId, reason => Reason}),
+            lumberjack_server:error("Error retrieving package", #{module => ?MODULE, packageId => PackageId, reason => Reason, req_id => Req_id}),
             {reply, {error, Reason}, Connection}
     end.
 
@@ -174,11 +174,11 @@ test_package_found()->
 	),
 
 	% happy thoughts
-    ?assertEqual({ok, FinalPackageData}, get_package_data(<<"package123">>)),
-	?assertEqual({ok, FinalPackageDataBadTruck}, get_package_data(<<"package_with_bad_truck">>)),
+    ?assertEqual({ok, FinalPackageData}, get_package_data(<<"package123">>, "req123")),
+	?assertEqual({ok, FinalPackageDataBadTruck}, get_package_data(<<"package_with_bad_truck">>, "req123")),
     % nasty thoughts start here
-	?assertEqual({error, not_found}, get_package_data(<<"bad_package">>)),
-    ?assertEqual({error, "Database down"}, get_package_data(<<"package_with_failed_truck_get">>)),
-	?assertEqual({error, "Database down"}, get_package_data(<<"databasedown">>)).
+	?assertEqual({error, not_found}, get_package_data(<<"bad_package">>, "req123")),
+    ?assertEqual({error, "Database down"}, get_package_data(<<"package_with_failed_truck_get">>, "req123")),
+	?assertEqual({error, "Database down"}, get_package_data(<<"databasedown">>, "req123")).
 
 -endif.
