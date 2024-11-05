@@ -3,13 +3,13 @@
 -behavior(gen_server).
 
 -export([start_link/0, update_location/3]).
--export([init/1, handle_call/3, terminate/2]).
+-export([init/1, handle_cast/3, terminate/2]).
 
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 update_location(TruckID, Lat, Long) ->
-    gen_server:call(?MODULE, {update, TruckID, Lat, Long}).
+    gen_server:cast(?MODULE, {update, TruckID, Lat, Long}).
 
 init([]) ->
     case database_client:connect() of
@@ -21,18 +21,27 @@ init([]) ->
             {stop, Reason}  %% Stop the gen_server if connection fails
     end.
 
-handle_call({update, TruckID, Lat, Long}, _From, Connection) ->
+handle_cast({update, TruckID, Lat, Long}, _From, Connection) ->
     %% Simulate interaction with db_client here
     case database_client:get(Connection, <<"trucks">>, TruckID) of
         {ok, Truck} ->
             UpdatedTruck = Truck#{latitude => Lat, longitude => Long},
-            ok = database_client:put(Connection, <<"trucks">>, TruckID, UpdatedTruck),
-            {reply, {ok, updated}, Connection};
+            case database_client:put(Connection, <<"trucks">>, TruckID, UpdatedTruck) of
+                {ok, _Updated} ->
+                    lumberjack_server:info("Truck data updated", #{module => ?MODULE});
+                {error, Reason} ->
+                    lumberjack_server:error("Error updating truck data", #{module => ?MODULE, truckId => TruckID, reason => Reason})
+                end;
         {error, not_found} ->
-            NewTruck = #{id => TruckID, latitude => Lat, longitude => Long},
-            ok = database_client:put(Connection, <<"trucks">>, TruckID, NewTruck),
-            {reply, {ok, inserted}, Connection}
-    end.
+            NewTruck = #{<<"long">> => Long, <<"lat">> => Lat},
+            case database_client:put(Connection, <<"trucks">>, TruckID, NewTruck) of
+                {ok, _Inserted} ->
+                    lumberjack_server:info("Truck inserted", #{module => ?MODULE});
+                {error, _Reason} ->
+                    lumberjack_server:error("Error updating truck data", #{module => ?MODULE, truckId => TruckId, reason => Reason})
+                end
+            end.
+
 
 terminate(_Reason, Connection) ->
     %% Close the database connection
@@ -92,19 +101,19 @@ cleanup(Pid) ->
 test_truck_update()->
     
 	 %% Mock the get function to return truck data when requested
-    meck:expect(database_client, get, 3, 
-        fun (_Connection, <<"trucks">>, <<"Truck123">>) ->
+    meck:expect(database_client, put, 4, 
+        fun (_Connection, <<"trucks">>, <<"truck123">>, _Data) ->
                 {ok, updated};
-            (_Connection, <<"trucks">>, <<"Truck321">>) ->
+            (_Connection, <<"trucks">>, <<"truck321">>, _Data) ->
                 {ok, inserted};
-            (_Connection, <<"trucks">>, <<"databasedown">>) ->
+            (_Connection, <<"trucks">>, <<"databasedown">>, _Data) ->
                 {error, "Database down"}
         end
 	),
 
 	% happy thoughts
     ?assertEqual({ok, updated}, update_location(<<"truck123">>, -72.532, 42.532)),
-	?assertEqual({ok, inserted}, update_location(<<"Truck321">>, -72.532, 42.532)),
+	?assertEqual({ok, inserted}, update_location(<<"truck321">>, -72.532, 42.532)),
     % nasty thoughts start here
 	?assertEqual({error, "Database down"}, update_location(<<"databasedown">>, -72.532, 42.532)).
 
