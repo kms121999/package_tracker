@@ -26,7 +26,7 @@ start(_StartType, _StartArgs) ->
         % {"packages.localhost", [{"/:package_id", package_get_handler, []}]}
     ]),
 
-    {ok, _} = cowboy:start_clear(http_listener, [{port, 8080}], #{
+    {ok, _} = cowboy:start_clear(http_listener, [{port, 80}], #{
         env => #{dispatch => Dispatch},
         middlewares => Middlewares
     }),
