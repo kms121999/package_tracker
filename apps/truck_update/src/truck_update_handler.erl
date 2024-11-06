@@ -27,7 +27,7 @@ init(Req=#{method := <<"POST">>}, State) ->
         {error, Reason} -> {500, #{error => Reason}}
     end,
     {StatusCode, RespBody} = Response,
-    {ok, Req2} = cowboy_req:reply(StatusCode, #{<<"content-type">> => <<"application/json">>}, jiffy:encode(RespBody), Req1),
+    Req2 = cowboy_req:reply(StatusCode, #{<<"content-type">> => <<"application/json">>}, jiffy:encode(RespBody), Req1),
     {ok, Req2, State};
 
 
