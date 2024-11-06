@@ -26,14 +26,14 @@ init(Req0=#{method := <<"GET">>}, State) ->
             %% Create the JSON response from PackageData
             ResponseJson = jsx:encode(PackageData),
             %% Send 200 OK response with the package data in JSON
-            {ok, Req1} = cowboy_req:reply(200, #{<<"content-type">> => <<"application/json">>}, ResponseJson, Req0),
+            Req1 = cowboy_req:reply(200, #{<<"content-type">> => <<"application/json">>}, ResponseJson, Req0),
             {ok, Req1, State};
 
         {error, not_found} ->
             lumberjack_server:warning("Package not found", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
             %% Handle the case where the package was not found
             ErrorJson = jsx:encode(#{<<"error">> => <<"Package not found">>}),
-            {ok, Req1} = cowboy_req:reply(404, #{<<"content-type">> => <<"application/json">>}, ErrorJson, Req0),
+            Req1 = cowboy_req:reply(404, #{<<"content-type">> => <<"application/json">>}, ErrorJson, Req0),
             {ok, Req1, State};
 
         {error, Reason} ->
@@ -41,7 +41,7 @@ init(Req0=#{method := <<"GET">>}, State) ->
             %% Handle any other errors
             ErrorJson = jsx:encode(#{<<"error">> => <<"Error retrieving package data">>,
                                      <<"reason">> => Reason}),
-            {ok, Req1} = cowboy_req:reply(500, #{<<"content-type">> => <<"application/json">>}, ErrorJson, Req0),
+            Req1 = cowboy_req:reply(500, #{<<"content-type">> => <<"application/json">>}, ErrorJson, Req0),
             {ok, Req1, State}
     end;
 
