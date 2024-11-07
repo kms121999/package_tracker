@@ -6,8 +6,10 @@
   {applications,
    [kernel,
     stdlib,
-    cowboy,
-    truck_update,
+    cowboy
+   ]},
+  {included_applications,
+   [truck_update,
     package_get,
     package_update,
     lumberjack,
