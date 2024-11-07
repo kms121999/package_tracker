@@ -27,23 +27,10 @@ start_link() ->
 %%                  modules => modules()}   % optional
 init([]) ->
     %% Define the child specification for Cowboy
-    Dispatch = cowboy_router:compile([
-        {'_', [{"/:package_id", package_get_handler, []}]}
-        % {"packages.localhost", [{"/:package_id", package_get_handler, []}]}
-    ]),
     SupFlags = #{strategy => one_for_all,
                  intensity => 0,
                  period => 1},
     ChildSpecs = [
-        % #{id => cowboy_http_listener,
-        %     start => {cowboy, start_clear, [http_listener, [{port, 8080}], #{
-        %         env => #{dispatch => Dispatch}
-        %     }]},
-        %     restart => permanent,
-        %     shutdown => 5000,
-        %     type => worker,
-        %     modules => [cowboy]
-        % },
         #{id => package_get_server,
           start => {package_get_server, start_link, []},
           restart => permanent,
