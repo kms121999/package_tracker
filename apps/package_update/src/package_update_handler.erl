@@ -15,7 +15,7 @@ init(Req=#{method := <<"POST">>}, State) ->
     Data = maps:remove(PackageID, ParsedData),
     
     %% Call the package_update server
-    Result = package_update:update_location(PackageID, Data),
+    Result = package_update_server:update_package(PackageID, Data),
 
     %% Prepare and send response
     Response = case Result of

@@ -9,7 +9,9 @@
     cowboy,
     truck_update,
     package_get,
-    package_update
+    package_update,
+    lumberjack,
+    uuid
    ]},
   {env,[]},
   {modules, []},

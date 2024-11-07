@@ -7,9 +7,9 @@
    [kernel,
     stdlib,
     cowboy,
-    ranch,
-    jsx,
-    lumberjack
+    jiffy,
+    lumberjack,
+    database_client
    ]},
   {env,[]},
   {modules, []},
