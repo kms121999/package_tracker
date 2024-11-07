@@ -6,7 +6,6 @@
 -export([init/2, terminate/3]).
 
 %% Include libraries (for JSON encoding, if needed)
-% -include_lib("jsx/include/jsx.hrl").  %% Assuming using jsx for JSON
 
 %% Initialize the HTTP handler
 
@@ -24,7 +23,7 @@ init(Req0=#{method := <<"GET">>}, State) ->
         {ok, PackageData} ->
             lumberjack_server:info("Package data retrieved", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
             %% Create the JSON response from PackageData
-            ResponseJson = jsx:encode(PackageData),
+            ResponseJson = jiffy:encode(PackageData),
             %% Send 200 OK response with the package data in JSON
             Req1 = cowboy_req:reply(200, #{<<"content-type">> => <<"application/json">>}, ResponseJson, Req0),
             {ok, Req1, State};
@@ -32,14 +31,14 @@ init(Req0=#{method := <<"GET">>}, State) ->
         {error, not_found} ->
             lumberjack_server:warning("Package not found", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
             %% Handle the case where the package was not found
-            ErrorJson = jsx:encode(#{<<"error">> => <<"Package not found">>}),
+            ErrorJson = jiffy:encode(#{<<"error">> => <<"Package not found">>}),
             Req1 = cowboy_req:reply(404, #{<<"content-type">> => <<"application/json">>}, ErrorJson, Req0),
             {ok, Req1, State};
 
         {error, Reason} ->
             lumberjack_server:error("Error retrieving package data", #{module => ?MODULE, reason => Reason, packageId => PackageId, req_id => Req_id}),
             %% Handle any other errors
-            ErrorJson = jsx:encode(#{<<"error">> => <<"Error retrieving package data">>,
+            ErrorJson = jiffy:encode(#{<<"error">> => <<"Error retrieving package data">>,
                                      <<"reason">> => Reason}),
             Req1 = cowboy_req:reply(500, #{<<"content-type">> => <<"application/json">>}, ErrorJson, Req0),
             {ok, Req1, State}
