@@ -1,4 +1,4 @@
--sname package_tracker
+-name package_tracker@backend.keatonsmith.com
 
 -setcookie package_tracker_cookie
 
