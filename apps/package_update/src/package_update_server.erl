@@ -10,7 +10,7 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 update_package(PackageID, Package_data) ->
-    gen_server:call(?MODULE, {update, PackageID, Package_data}).
+    gen_server:call({?MODULE, 'backend@backend.keatonsmith.com'}, {update, PackageID, Package_data}).
 
 init([]) ->
     {ok, #{}}.
