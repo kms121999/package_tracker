@@ -7,11 +7,7 @@
    [kernel,
     stdlib,
     cowboy,
-    uuid,
-    truck_update,
-    package_get,
-    package_update,
-    lumberjack
+    uuid
    ]},
   {env,[]},
   {modules, []},
