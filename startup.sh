@@ -4,4 +4,4 @@ if [ -z "$1" ]; then
     echo "Usage: you must enter the name for the node. "
     exit 1
 fi
-rebar3 shell --application=$1 --name $1@backend.keatonsmith.com --setcookie package_tracker_cookie
+rebar3 shell --apps=$1 --name $1@backend.keatonsmith.com --setcookie package_tracker_cookie
