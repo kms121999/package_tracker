@@ -31,7 +31,7 @@ init([]) ->
 get_package_data(PackageId, Req_id) ->
         lumberjack_server:info("Calling for package data", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
 		%% Synchronous call to the gen_server to fetch package data
-		gen_server:call(?MODULE, {get_package_data, PackageId, Req_id}).
+		gen_server:call({?MODULE, "package_tracker@backend.keatonsmith.com"}, {get_package_data, PackageId, Req_id}).
 
 %% Handle synchronous calls
 handle_call({get_package_data, PackageId, Req_id}, _From, Connection) ->
