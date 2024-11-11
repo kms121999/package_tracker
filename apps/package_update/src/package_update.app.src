@@ -5,11 +5,7 @@
   {mod, {package_update_app, []}},
   {applications,
    [kernel,
-    stdlib,
-    cowboy,
-    jiffy,
-    database_client,
-    lumberjack
+    stdlib
    ]},
   {env,[]},
   {modules, []},
