@@ -6,14 +6,12 @@
   {applications,
    [kernel,
     stdlib,
-    cowboy
-   ]},
-  {included_applications,
-   [truck_update,
+    cowboy,
+    uuid,
+    truck_update,
     package_get,
     package_update,
-    lumberjack,
-    uuid
+    lumberjack
    ]},
   {env,[]},
   {modules, []},

@@ -7,10 +7,8 @@
    [kernel,
     stdlib,
     cowboy,
-    jiffy
-   ]},
-  {included_applications,
-   [database_client,
+    jiffy,
+    database_client,
     lumberjack
    ]},
   {env,[]},
