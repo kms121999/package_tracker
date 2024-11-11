@@ -18,11 +18,11 @@ init([]) ->
 handle_call({update, PackageID, Package_data}, _From, State) ->
     %% Simulate interaction with db_client here
     case database_client:get(State, <<"packages">>, PackageID) of
-        ok ->
+        {ok, _Data} ->
             
             case database_client:put(State, <<"packages">>, PackageID, Package_data) of
                 ok ->
-                    {reply, ok, State};
+                    {reply, {ok, replaced}, State};
                 {error, _Reason} ->
                     {reply, {error, database_error}, State}
                 end;
