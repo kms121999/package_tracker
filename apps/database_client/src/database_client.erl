@@ -6,13 +6,14 @@
 connect() ->
     %% Return a mock connection object (for example, a process ID or reference)
     io:format("Connecting to Riak database...~n"),
-    {ok, Pid} = riakc_pb_socket:start_link("127.0.0.1", 8087),
-    case riakc_pb_socket:ping(Pid) of
-    pong ->
-        io:format("Connected to Riak server successfully~n");
-    _ ->
-        io:format("Failed to connect to Riak server~n")
-    end,
+    Connection = riakc_pb_socket:start_link("127.0.0.1", 8087),
+    io:format("Connection: ~p~n", [Connection]),
+    % case riakc_pb_socket:ping(Pid) of
+    % pong ->
+    %     io:format("Connected to Riak server successfully~n");
+    % _ ->
+    %     io:format("Failed to connect to Riak server~n")
+    % end,
     {ok, Pid}.
 
 %% Simulate putting data into Riak
