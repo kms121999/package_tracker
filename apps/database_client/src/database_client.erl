@@ -14,7 +14,7 @@ connect() ->
     % _ ->
     %     io:format("Failed to connect to Riak server~n")
     % end,
-    {ok, Pid}.
+    {ok,  make_ref()}.
 
 %% Simulate putting data into Riak
 put(Connection, Bucket, Key, Data) ->
