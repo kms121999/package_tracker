@@ -5,8 +5,7 @@
   {mod, {database_client_app, []}},
   {applications,
    [kernel,
-    stdlib,
-    riak_client
+    stdlib
    ]},
   {env,[]},
   {modules, []},
