@@ -1,71 +1,95 @@
-%% riak_client.erl
 -module(database_client).
--export([connect/0, put/4, get/3, delete/3, disconnect/1]).
+-behavior(gen_server).
 
-%% Simulate connecting to Riak
+%% API
+-export([start_link/0, connect/0, put/3, get/2, delete/2, disconnect/0]).
+
+%% gen_server callbacks
+-export([init/1, handle_call/3, terminate/2]).
+
+-define(SERVER, ?MODULE).
+
+%% Starts the gen_server process
+start_link() ->
+    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+
+%% API Functions that make calls to gen_server
+
 connect() ->
-    %% Return a mock connection object (for example, a process ID or reference)
+    gen_server:call(?SERVER, connect).
+
+put(Bucket, Key, Data) ->
+    gen_server:call(?SERVER, {put, Bucket, Key, Data}).
+
+get(Bucket, Key) ->
+    gen_server:call(?SERVER, {get, Bucket, Key}).
+
+delete(Bucket, Key) ->
+    gen_server:call(?SERVER, {delete, Bucket, Key}).
+
+disconnect() ->
+    gen_server:call(?SERVER, disconnect).
+
+%% gen_server callback implementations
+
+init([]) ->
+    io:format("Starting database_client...~n"),
+    {ok, #{}}.
+
+handle_call(connect, _From, State) ->
     io:format("Connecting to Riak database...~n"),
     {ok, Pid} = riakc_pb_socket:start_link("127.0.0.1", 8087),
-    io:format("Connection: ~p~n", [Pid]),
-    % case riakc_pb_socket:ping(Pid) of
-    % pong ->
-    %     io:format("Connected to Riak server successfully~n");
-    % _ ->
-    %     io:format("Failed to connect to Riak server~n")
-    % end,
-    {ok, Pid}.
+    io:format("Connection established: ~p~n", [Pid]),
+    {reply, {ok, Pid}, maps:put(connection, Pid, State)};
 
-%% Simulate putting data into Riak
-put(Connection, Bucket, Key, Data) ->
-    io:format("Saving data to Riak: Connection=~p, Bucket=~p, Key=~p, Data=~p~n", [Connection, Bucket, Key, Data]),
-    ok.
+handle_call({put, Bucket, Key, Data}, _From, State) ->
+    io:format("Saving data to Riak: Bucket=~p, Key=~p, Data=~p~n", [Bucket, Key, Data]),
+    case maps:get(connection, State, undefined) of
+        undefined ->
+            {reply, {error, no_connection}, State};
+        Pid ->
+            Object = riakc_obj:new(Bucket, Key, Data),
+            case riakc_pb_socket:put(Pid, Object) of
+                ok -> {reply, ok, State};
+                {error, Reason} -> {reply, {error, Reason}, State}
+            end
+    end;
 
-%% Simulate getting data from Riak
-get(Connection, Bucket, Key) ->
-    %% Example of getting data (mocked for now)
-    io:format("Getting data from Riak: Connection=~p, Bucket=~p, Key=~p~n", [Connection, Bucket, Key]),
+handle_call({get, Bucket, Key}, _From, State) ->
+    io:format("Getting data from Riak: Bucket=~p, Key=~p~n", [Bucket, Key]),
+    case maps:get(connection, State, undefined) of
+        undefined ->
+            {reply, {error, no_connection}, State};
+        Pid ->
+            case riakc_pb_socket:get(Pid, Bucket, Key) of
+                {ok, Obj} -> {reply, {ok, riakc_obj:get_value(Obj)}, State};
+                {error, Reason} -> {reply, {error, Reason}, State}
+            end
+    end;
 
-    PackageData = #{
-        <<"sender">> => <<"Alice">>, 
-        <<"receiver">> => <<"Bob">>, 
-        <<"destination">> => 
-            #{ <<"street">> => <<"123 Cat Lane">>, 
-                <<"city">> => <<"Wonderland">>, 
-                <<"state">> => <<"NY">>, 
-                <<"zip">> => <<"12345">>, 
-                <<"country">> => <<"USA">> }, 
-        <<"returnAddress">> => 
-            #{ <<"street">> => <<"456 Yellow Brick Rd">>, 
-                <<"city">> => <<"OZ">>, 
-                <<"state">> => <<"KS">>, 
-                <<"zip">> => <<"54321">>, 
-                <<"country">> => <<"England">> }, 
-        <<"status">> => <<"in transit">>, 
-        <<"priority">> => <<"overnight">>, 
-        <<"truckId">> => <<"truck123">>
-    },
+handle_call({delete, Bucket, Key}, _From, State) ->
+    io:format("Deleting data from Riak: Bucket=~p, Key=~p~n", [Bucket, Key]),
+    case maps:get(connection, State, undefined) of
+        undefined ->
+            {reply, {error, no_connection}, State};
+        Pid ->
+            case riakc_pb_socket:delete(Pid, Bucket, Key) of
+                ok -> {reply, ok, State};
+                {error, Reason} -> {reply, {error, Reason}, State}
+            end
+    end;
 
-    PackageDataFakeTruck = maps:put(<<"truckId">>, <<"faketruck">>, PackageData),
-
-
-    case {Bucket, Key} of
-        {<<"trucks">>, <<"truck123">>} ->
-            {ok, #{<<"long">> => -73.935242, <<"lat">> => 40.730610}};
-        {<<"packages">>, <<"package123">>} ->
-            {ok, PackageData};
-        {<<"packages">>, <<"faketruck">>} ->
-            {ok, PackageDataFakeTruck};
-        _ ->
-            {error, not_found}
+handle_call(disconnect, _From, State) ->
+    case maps:get(connection, State, undefined) of
+        undefined ->
+            io:format("No connection to disconnect.~n"),
+            {reply, ok, State};
+        Pid ->
+            io:format("Disconnecting from Riak: ~p~n", [Pid]),
+            riakc_pb_socket:stop(Pid),
+            {reply, ok, maps:remove(connection, State)}
     end.
 
-%% Simulate deleting data from Riak
-delete(Connection, Bucket, Key) ->
-    io:format("Deleting data from Riak: Connection=~p, Bucket=~p, Key=~p~n", [Connection, Bucket, Key]),
-    ok.
-
-%% Simulate disconnecting from Riak
-disconnect(Connection) ->
-    io:format("Disconnecting from Riak with connection: ~p~n", [Connection]),
+terminate(_Reason, _State) ->
+    io:format("Terminating database_client...~n"),
     ok.
