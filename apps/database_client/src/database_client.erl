@@ -11,7 +11,7 @@
 
 %% Starts the gen_server process
 start_link() ->
-    gen_server:start_link({local, {?MODULE, 'database_client@riak.keatonsmith.com'}}, ?MODULE, [], []).
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% API Functions that make calls to gen_server
 
