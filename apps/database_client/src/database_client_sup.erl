@@ -25,12 +25,12 @@ init([]) ->
                  intensity => 0,
                  period => 1},
     ChildSpecs = [
-        #{id => database_client_server,
-          start => {database_client_server, start_link, []},
+        #{id => database_client,
+          start => {database_client, start_link, []},
           restart => permanent,
           shutdown => 5000,
           type => worker,
-          modules => [database_client_server]
+          modules => [database_client]
         }
     ],
     
