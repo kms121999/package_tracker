@@ -11,24 +11,24 @@
 
 %% Starts the gen_server process
 start_link() ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+    gen_server:start_link({local, {?MODULE, 'database_client@riak.keatonsmith.com'}}, ?MODULE, [], []).
 
 %% API Functions that make calls to gen_server
 
 connect() ->
-    gen_server:call(?SERVER, connect).
+    gen_server:call({?MODULE, 'database_client@riak.keatonsmith.com'}, connect).
 
 put(Bucket, Key, Data) ->
-    gen_server:call(?SERVER, {put, Bucket, Key, Data}).
+    gen_server:call({?MODULE, 'database_client@riak.keatonsmith.com'}, {put, Bucket, Key, Data}).
 
 get(Bucket, Key) ->
-    gen_server:call(?SERVER, {get, Bucket, Key}).
+    gen_server:call({?MODULE, 'database_client@riak.keatonsmith.com'}, {get, Bucket, Key}).
 
 delete(Bucket, Key) ->
-    gen_server:call(?SERVER, {delete, Bucket, Key}).
+    gen_server:call({?MODULE, 'database_client@riak.keatonsmith.com'}, {delete, Bucket, Key}).
 
 disconnect() ->
-    gen_server:call(?SERVER, disconnect).
+    gen_server:call({?MODULE, 'database_client@riak.keatonsmith.com'}, disconnect).
 
 %% gen_server callback implementations
 
