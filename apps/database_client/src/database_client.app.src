@@ -2,9 +2,11 @@
  [{description, "An OTP application"},
   {vsn, "0.1.0"},
   {registered, []},
+  {mod, {database_client_app, []}},
   {applications,
    [kernel,
-    stdlib
+    stdlib,
+    riak_client
    ]},
   {env,[]},
   {modules, []},
