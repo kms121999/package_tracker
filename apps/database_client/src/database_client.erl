@@ -40,11 +40,11 @@ handle_call(connect, _From, State) ->
     io:format("Connecting to Riak database...~n"),
     {ok, Pid} = riakc_pb_socket:start_link("127.0.0.1", 8087),
     io:format("Connection established: ~p~n", [Pid]),
-    {reply, {ok, Pid}, maps:put(connection, Pid, State)};
+    {reply, {ok, Pid}, nil};
 
 handle_call({put, Connection, Bucket, Key, Data}, _From, State) ->
     io:format("Saving data to Riak: Bucket=~p, Key=~p, Data=~p~n", [Bucket, Key, Data]),
-    case maps:get(connection, Connection, undefined) of
+    case Connection of
         undefined ->
             {reply, {error, no_connection}, State};
         Pid ->
@@ -57,7 +57,7 @@ handle_call({put, Connection, Bucket, Key, Data}, _From, State) ->
 
 handle_call({get, Connection, Bucket, Key}, _From, State) ->
     io:format("Getting data from Riak: Bucket=~p, Key=~p~n", [Bucket, Key]),
-    case maps:get(connection, Connection, undefined) of
+    case Connection of
         undefined ->
             {reply, {error, no_connection}, State};
         Pid ->
@@ -69,7 +69,7 @@ handle_call({get, Connection, Bucket, Key}, _From, State) ->
 
 handle_call({delete, Connection, Bucket, Key}, _From, State) ->
     io:format("Deleting data from Riak: Bucket=~p, Key=~p~n", [Bucket, Key]),
-    case maps:get(connection, Connection, undefined) of
+    case Connection of
         undefined ->
             {reply, {error, no_connection}, State};
         Pid ->
@@ -80,14 +80,14 @@ handle_call({delete, Connection, Bucket, Key}, _From, State) ->
     end;
 
 handle_call({disconnect, Connection}, _From, State) ->
-    case maps:get(connection, Connection, undefined) of
+    case Connection of
         undefined ->
             io:format("No connection to disconnect.~n"),
             {reply, ok, State};
         Pid ->
             io:format("Disconnecting from Riak: ~p~n", [Pid]),
             riakc_pb_socket:stop(Pid),
-            {reply, ok, maps:remove(connection, State)}
+            {reply, ok, nil}
     end.
 
 terminate(_Reason, _State) ->
