@@ -9,7 +9,7 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 update_location(TruckID, Lat, Long) ->
-    gen_server:cast({?MODULE, 'truck_update@backend.keatonsmith.com'}, {update, TruckID, Lat, Long}).
+    gen_server:cast({?MODULE, 'backend@backend.keatonsmith.com'}, {update, TruckID, Lat, Long}).
 
 init([]) ->
     case database_client:connect() of
