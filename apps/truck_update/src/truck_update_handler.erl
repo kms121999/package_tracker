@@ -23,7 +23,7 @@ init(Req=#{method := <<"POST">>}, State) ->
 
     %% Prepare and send response
     Response = case Result of
-        ok -> {200, #{status => Status}};
+        ok -> {200, #{status => noreply}};
         {error, Reason} -> {500, #{error => Reason}}
     end,
     {StatusCode, RespBody} = Response,
