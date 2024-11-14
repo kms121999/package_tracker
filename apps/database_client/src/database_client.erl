@@ -62,7 +62,7 @@ handle_call({get, Connection, Bucket, Key}, _From, State) ->
             {reply, {error, no_connection}, State};
         Pid ->
             case riakc_pb_socket:get(Pid, Bucket, Key) of
-                {ok, Obj} -> {reply, {ok, riakc_obj:get_value(Obj)}, State};
+                {ok, Obj} -> {reply, {ok, binary_to_term(riakc_obj:get_value(Obj))}, State};
                 {error, Reason} -> {reply, {error, Reason}, State}
             end
     end;
