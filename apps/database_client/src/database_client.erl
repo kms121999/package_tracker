@@ -2,7 +2,7 @@
 -behavior(gen_server).
 
 %% API
--export([start_link/0, connect/0, put/3, get/2, delete/2, disconnect/0]).
+-export([start_link/0, connect/0, put/4, get/3, delete/3, disconnect/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, terminate/2]).
@@ -18,17 +18,17 @@ start_link() ->
 connect() ->
     gen_server:call({?MODULE, 'database_client@riak.keatonsmith.com'}, connect).
 
-put(Bucket, Key, Data) ->
-    gen_server:call({?MODULE, 'database_client@riak.keatonsmith.com'}, {put, Bucket, Key, Data}).
+put(Connection, Bucket, Key, Data) ->
+    gen_server:call({?MODULE, 'database_client@riak.keatonsmith.com'}, {put, Connection, Bucket, Key, Data}).
 
-get(Bucket, Key) ->
-    gen_server:call({?MODULE, 'database_client@riak.keatonsmith.com'}, {get, Bucket, Key}).
+get(Connection, Bucket, Key) ->
+    gen_server:call({?MODULE, 'database_client@riak.keatonsmith.com'}, {get, Connection, Bucket, Key}).
 
-delete(Bucket, Key) ->
-    gen_server:call({?MODULE, 'database_client@riak.keatonsmith.com'}, {delete, Bucket, Key}).
+delete(Connection, Bucket, Key) ->
+    gen_server:call({?MODULE, 'database_client@riak.keatonsmith.com'}, {delete, Connection, Bucket, Key}).
 
-disconnect() ->
-    gen_server:call({?MODULE, 'database_client@riak.keatonsmith.com'}, disconnect).
+disconnect(Connection) ->
+    gen_server:call({?MODULE, 'database_client@riak.keatonsmith.com'}, {disconnect, Connection}).
 
 %% gen_server callback implementations
 
@@ -42,9 +42,9 @@ handle_call(connect, _From, State) ->
     io:format("Connection established: ~p~n", [Pid]),
     {reply, {ok, Pid}, maps:put(connection, Pid, State)};
 
-handle_call({put, Bucket, Key, Data}, _From, State) ->
+handle_call({put, Connection, Bucket, Key, Data}, _From, State) ->
     io:format("Saving data to Riak: Bucket=~p, Key=~p, Data=~p~n", [Bucket, Key, Data]),
-    case maps:get(connection, State, undefined) of
+    case maps:get(connection, Connection, undefined) of
         undefined ->
             {reply, {error, no_connection}, State};
         Pid ->
@@ -55,9 +55,9 @@ handle_call({put, Bucket, Key, Data}, _From, State) ->
             end
     end;
 
-handle_call({get, Bucket, Key}, _From, State) ->
+handle_call({get, Connection, Bucket, Key}, _From, State) ->
     io:format("Getting data from Riak: Bucket=~p, Key=~p~n", [Bucket, Key]),
-    case maps:get(connection, State, undefined) of
+    case maps:get(connection, Connection, undefined) of
         undefined ->
             {reply, {error, no_connection}, State};
         Pid ->
@@ -67,9 +67,9 @@ handle_call({get, Bucket, Key}, _From, State) ->
             end
     end;
 
-handle_call({delete, Bucket, Key}, _From, State) ->
+handle_call({delete, Connection, Bucket, Key}, _From, State) ->
     io:format("Deleting data from Riak: Bucket=~p, Key=~p~n", [Bucket, Key]),
-    case maps:get(connection, State, undefined) of
+    case maps:get(connection, Connection, undefined) of
         undefined ->
             {reply, {error, no_connection}, State};
         Pid ->
@@ -79,8 +79,8 @@ handle_call({delete, Bucket, Key}, _From, State) ->
             end
     end;
 
-handle_call(disconnect, _From, State) ->
-    case maps:get(connection, State, undefined) of
+handle_call({disconnect, Connection}, _From, State) ->
+    case maps:get(connection, Connection, undefined) of
         undefined ->
             io:format("No connection to disconnect.~n"),
             {reply, ok, State};
