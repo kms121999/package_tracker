@@ -19,9 +19,9 @@ start(_StartType, _StartArgs) ->
 
     Dispatch = cowboy_router:compile([
         {'_', [
-            {"/package/:package_id", package_get_handler, []},
-            {"/truck", truck_update_handler, []},
-            {"/package/update/:package_id", package_update_handler, []}
+            {"/package/get", package_get_handler, []},
+            {"/truck/update", truck_update_handler, []},
+            {"/package/update", package_update_handler, []}
         ]}
         % {"packages.localhost", [{"/:package_id", package_get_handler, []}]}
     ]),

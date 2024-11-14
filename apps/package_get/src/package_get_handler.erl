@@ -11,11 +11,14 @@
 
 
 %% Handle GET requests for full package data
-init(Req0=#{method := <<"GET">>}, State) ->
-    Req_id = maps:get(req_id, maps:get(package_tracker, Req0)),
+init(Req=#{method := <<"POST">>}, State) ->
+    Req_id = maps:get(req_id, maps:get(package_tracker, Req)),
 
-    %% Parse the package ID (or truck ID) from the request path
-    PackageId = cowboy_req:binding(package_id, Req0),
+    {ok, Body, Req0} = cowboy_req:read_body(Req),
+    ParsedData = jiffy:decode(Body, [return_maps]),
+
+    %% Extract values
+    PackageId = maps:get(<<"packageId">>, ParsedData),
     lumberjack_server:info("Received package get request", #{module => ?MODULE, packageId => PackageId, peer_ip => cowboy_req:peer(Req0), req_id => Req_id}),
 
     %% Retrieve the full package data using truck_data_retriever:get_package_data/1
@@ -49,7 +52,7 @@ init(Req0, State) ->
     
     lumberjack_server:warning("Invalid request method", #{module => ?MODULE, method => cowboy_req:method(Req0), peer_ip => cowboy_req:peer(Req0), req_id => Req_id}),
     Req1 = cowboy_req:reply(405, #{
-        <<"allow">> => <<"GET">>
+        <<"allow">> => <<"POST">>
     }, Req0),
     {ok, Req1, State}.
 
