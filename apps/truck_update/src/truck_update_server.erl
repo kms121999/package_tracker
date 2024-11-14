@@ -33,6 +33,9 @@ handle_cast({update, TruckID, Lat, Long}, Connection) ->
             {noreply, Connection}
         end.
 
+handle_call(Msg, From, Connection) ->
+    lumberjack_server:warning("Unimplemented method called: handle_call", #{module => ?MODULE, from => From, message => Msg}),
+    {reply, {error, unimplemented}, Connection}.
 
 terminate(_Reason, Connection) ->
     %% Close the database connection

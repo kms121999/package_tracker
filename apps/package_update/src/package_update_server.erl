@@ -41,8 +41,9 @@ handle_call({update, PackageID, Package_data}, _From, State) ->
             {reply, {ok, inserted}, State}
     end.
 
-
-    
+handle_cast(Msg, Connection) ->
+    lumberjack_server:warning("Unimplemented method called: handle_cast", #{module => ?MODULE, message => Msg}),
+    {noreply, Connection}.
 
 terminate(_Reason, Connection) ->
     %% Close the database connection
