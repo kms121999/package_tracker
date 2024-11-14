@@ -5,7 +5,7 @@
 -export([start_link/0, connect/0, put/4, get/3, delete/3, disconnect/1]).
 
 %% gen_server callbacks
--export([init/1, handle_call/3, terminate/2]).
+-export([init/1, handle_call/3, handle_cast/2, terminate/2]).
 
 -define(SERVER, ?MODULE).
 
@@ -54,7 +54,7 @@ handle_call(connect, _From, State) ->
     lumberjack_server:info("Connection established", #{module => ?MODULE, connection => Pid, node => node()}),
     io:format("Connected to database with Pid: ~p~n", [Pid]), %% Debugging
 
-    {reply, {ok, Pid}, nil};
+    {reply, {ok, Pid}, State};
 
 handle_call({put, Connection, Bucket, Key, Data}, _From, State) ->
     lumberjack_server:info("Saving data to database", #{module => ?MODULE, bucket => Bucket, key => Key, node => node()}),
@@ -110,7 +110,7 @@ handle_call({disconnect, Pid}, _From, State) ->
         Pid ->
             io:format("Disconnecting from Riak: ~p~n", [Pid]), %% Debugging
             riakc_pb_socket:stop(Pid),
-            {reply, ok, nil}
+            {reply, ok, State}
     end.
 
 handle_cast(Msg, State) ->

@@ -27,7 +27,7 @@ handle_info(_Info, State) ->
     {ok, State}.
 
 %% Terminate the handler and close the log file
-terminate(_Reason, State = #{file := File}) ->
+terminate(_Reason, _State = #{file := File}) ->
     file:close(File),
     ok.
 
