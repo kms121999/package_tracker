@@ -6,11 +6,10 @@
 
 
 init(Req=#{method := <<"POST">>}, State) ->
+    Req_id = maps:get(req_id, maps:get(package_tracker, Req)),
 
     {ok, Body, Req1} = cowboy_req:read_body(Req),
-    io:format("DATA: ~p~n", [Body]),
     ParsedData = jiffy:decode(Body, [return_maps]),
-    io:format("DATA: ~p~n", [ParsedData]),
 
 
     %% Extract values
