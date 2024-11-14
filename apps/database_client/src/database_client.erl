@@ -11,39 +11,55 @@
 
 %% Starts the gen_server process
 start_link() ->
+    io:format("Starting database_client...~n"),
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% API Functions that make calls to gen_server
 
 connect() ->
-    gen_server:call({?MODULE, 'database@database.keatonsmith.com'}, connect).
+    lumberjack_server:info("Connecting to database", #{module => ?MODULE, node => node()}),
+
+    Connection = gen_server:call({?MODULE, 'database@database.keatonsmith.com'}, connect),
+    lumberjack_server:info("Connection established to database", #{module => ?MODULE, connection => Connection, node => node()}),
+    Connection.
 
 put(Connection, Bucket, Key, Data) ->
+    lumberjack_server:info("Sending data to Riak", #{module => ?MODULE, bucket => Bucket, key => Key, node => node()}),
     gen_server:call({?MODULE, 'database@database.keatonsmith.com'}, {put, Connection, Bucket, Key, Data}).
 
 get(Connection, Bucket, Key) ->
+    lumberjack_server:info("Getting data from Riak", #{module => ?MODULE, bucket => Bucket, key => Key, node => node()}),
     gen_server:call({?MODULE, 'database@database.keatonsmith.com'}, {get, Connection, Bucket, Key}).
 
 delete(Connection, Bucket, Key) ->
+    lumberjack_server:info("Deleting data from Riak", #{module => ?MODULE, bucket => Bucket, key => Key, node => node()}),
     gen_server:call({?MODULE, 'database@database.keatonsmith.com'}, {delete, Connection, Bucket, Key}).
 
 disconnect(Connection) ->
+    lumberjack_server:info("Disconnecting from Riak", #{module => ?MODULE, connection => Connection, node => node()}),
     gen_server:call({?MODULE, 'database@database.keatonsmith.com'}, {disconnect, Connection}).
 
 %% gen_server callback implementations
 
 init([]) ->
-    io:format("Starting database_client...~n"),
+    io:format("Initializing database_client...~n"),
     {ok, #{}}.
 
 handle_call(connect, _From, State) ->
-    io:format("Connecting to Riak database...~n"),
+    lumberjack_server:info("Creating connection to database", #{module => ?MODULE, node => node()}),
+    io:format("Connecting to database...~n"), %% Debugging
+
     {ok, Pid} = riakc_pb_socket:start_link("127.0.0.1", 8087),
-    io:format("Connection established: ~p~n", [Pid]),
+
+    lumberjack_server:info("Connection established", #{module => ?MODULE, connection => Pid, node => node()}),
+    io:format("Connected to database with Pid: ~p~n", [Pid]), %% Debugging
+
     {reply, {ok, Pid}, nil};
 
 handle_call({put, Connection, Bucket, Key, Data}, _From, State) ->
-    io:format("Saving data to Riak: Bucket=~p, Key=~p, Data=~p~n", [Bucket, Key, Data]),
+    lumberjack_server:info("Saving data to database", #{module => ?MODULE, bucket => Bucket, key => Key, node => node()}),
+    io:format("Saving data to database: Bucket=~p, Key=~p, Data=~p~n", [Bucket, Key, Data]), %% Debugging
+
     case Connection of
         undefined ->
             {reply, {error, no_connection}, State};
@@ -56,7 +72,9 @@ handle_call({put, Connection, Bucket, Key, Data}, _From, State) ->
     end;
 
 handle_call({get, Connection, Bucket, Key}, _From, State) ->
-    io:format("Getting data from Riak: Bucket=~p, Key=~p~n", [Bucket, Key]),
+    lumberjack_server:info("Retrieving data from database", #{module => ?MODULE, bucket => Bucket, key => Key, node => node()}),
+    io:format("Getting data from Riak: Bucket=~p, Key=~p~n", [Bucket, Key]), %% Debugging
+
     case Connection of
         undefined ->
             {reply, {error, no_connection}, State};
@@ -68,7 +86,9 @@ handle_call({get, Connection, Bucket, Key}, _From, State) ->
     end;
 
 handle_call({delete, Connection, Bucket, Key}, _From, State) ->
-    io:format("Deleting data from Riak: Bucket=~p, Key=~p~n", [Bucket, Key]),
+    lumberjack_server:info("Deleting data from database", #{module => ?MODULE, bucket => Bucket, key => Key, node => node()}),
+    io:format("Deleting data from Riak: Bucket=~p, Key=~p~n", [Bucket, Key]), %% Debugging
+
     case Connection of
         undefined ->
             {reply, {error, no_connection}, State};
@@ -79,16 +99,23 @@ handle_call({delete, Connection, Bucket, Key}, _From, State) ->
             end
     end;
 
-handle_call({disconnect, Connection}, _From, State) ->
-    case Connection of
+handle_call({disconnect, Pid}, _From, State) ->
+    lumberjack_server:info("Disconnecting from database", #{module => ?MODULE, connection => Pid, node => node()}),
+    io:format("Disconnecting connection to database: ~p~n", [Pid]), %% Debugging
+
+    case Pid of
         undefined ->
-            io:format("No connection to disconnect.~n"),
+            io:format("No connection to disconnect.~n"), %% Debugging
             {reply, ok, State};
         Pid ->
-            io:format("Disconnecting from Riak: ~p~n", [Pid]),
+            io:format("Disconnecting from Riak: ~p~n", [Pid]), %% Debugging
             riakc_pb_socket:stop(Pid),
             {reply, ok, nil}
     end.
+
+handle_cast(Msg, State) ->
+    lumberjack_server:warning("Unimplemented method called: handle_cast", #{module => ?MODULE, message => Msg, node => node()}),
+    {noreply, State}.
 
 terminate(_Reason, _State) ->
     io:format("Terminating database_client...~n"),
