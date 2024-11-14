@@ -46,17 +46,17 @@ handle_call({get_package_data, PackageId, Req_id}, _From, Connection) ->
                 {ok, TruckData} ->
                     lumberjack_server:info("Truck data retrieved", #{module => ?MODULE, req_id => Req_id}),
                     {reply, {ok, maps:put(<<"location">>, TruckData, Data)}, Connection};
-                {error, not_found} ->
+                {error, notfound} ->
                     lumberjack_server:warning("Truck data not found", #{module => ?MODULE, truckId => TruckId, req_id => Req_id}),
                     {reply, {ok, maps:put(<<"location">>, null, Data)}, Connection};
                 {error, Reason} ->
                     lumberjack_server:error("Error retrieving truck data", #{module => ?MODULE, truckId => TruckId, reason => Reason, req_id => Req_id}),
                     {reply, {error, Reason}, Connection}
             end;
-        {error, not_found} ->
+        {error, notfound} ->
             %% Handle the case where the package is not found
             lumberjack_server:warning("Package not found", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
-            {reply, {error, not_found}, Connection};
+            {reply, {error, notfound}, Connection};
         {error, Reason} ->
             %% General error handling
             lumberjack_server:error("Error retrieving package", #{module => ?MODULE, packageId => PackageId, reason => Reason, req_id => Req_id}),
@@ -160,14 +160,14 @@ test_package_found()->
             (_Connection, <<"packages">>, <<"package_with_failed_truck_get">>) ->
                 {ok, StoredPackageDataTruckDatabaseDown};
             (_Connection, <<"packages">>, <<"bad_package">>) ->
-                {error, not_found};
+                {error, notfound};
             (_Connection, <<"packages">>, <<"databasedown">>) ->
                 {error, "Database down"};
 
             (_Connection, <<"trucks">>, <<"truck123">>) ->
                 {ok, maps:get(<<"location">>, FinalPackageData)};
             (_Connection, <<"trucks">>, <<"bad_truck">>) ->
-                {error, not_found};
+                {error, notfound};
             (_Connection, <<"trucks">>, <<"databasedown">>) ->
                 {error, "Database down"}
         end
@@ -177,7 +177,7 @@ test_package_found()->
     ?assertEqual({ok, FinalPackageData}, get_package_data(<<"package123">>, "req123")),
 	?assertEqual({ok, FinalPackageDataBadTruck}, get_package_data(<<"package_with_bad_truck">>, "req123")),
     % nasty thoughts start here
-	?assertEqual({error, not_found}, get_package_data(<<"bad_package">>, "req123")),
+	?assertEqual({error, notfound}, get_package_data(<<"bad_package">>, "req123")),
     ?assertEqual({error, "Database down"}, get_package_data(<<"package_with_failed_truck_get">>, "req123")),
 	?assertEqual({error, "Database down"}, get_package_data(<<"databasedown">>, "req123")).
 
