@@ -25,7 +25,7 @@ handle_cast({update, TruckID, Lat, Long}, Connection) ->
     %% Simulate interaction with db_client here
     UpdatedTruck = #{<<"long">> => Long, <<"lat">> => Lat},
     case database_client:put(Connection, <<"trucks">>, TruckID, UpdatedTruck) of
-        {ok, _Updated} ->
+        ok ->
             lumberjack_server:info("Truck updated", #{module => ?MODULE}),
             {noreply, Connection};
         {error, Reason} ->
