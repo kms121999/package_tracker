@@ -11,7 +11,7 @@ init(Req=#{method := <<"POST">>}, State) ->
     ParsedData = jiffy:decode(Body, [return_maps]),
 
     %% Extract values
-    PackageID = maps:get(<<"packageID">>, ParsedData),
+    PackageID = maps:get(<<"packageId">>, ParsedData),
     Data = maps:remove(PackageID, ParsedData),
     
     %% Call the package_update server

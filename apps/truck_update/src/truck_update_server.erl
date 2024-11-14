@@ -96,7 +96,7 @@ setup() ->
         fun (_Connection, <<"trucks">>, <<"truck123">>) ->
                 {ok, #{latitude => 0.0, longitude => 0.0}};
             (_Connection, <<"trucks">>, <<"truck321">>) ->
-                {error, not_found};
+                {error, notfound};
             (_Connection, <<"trucks">>, <<"databasedown">>) ->
                 {error, "Database down"}
         end

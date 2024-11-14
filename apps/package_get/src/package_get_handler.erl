@@ -28,7 +28,7 @@ init(Req0=#{method := <<"GET">>}, State) ->
             Req1 = cowboy_req:reply(200, #{<<"content-type">> => <<"application/json">>}, ResponseJson, Req0),
             {ok, Req1, State};
 
-        {error, not_found} ->
+        {error, notfound} ->
             lumberjack_server:warning("Package not found", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
             %% Handle the case where the package was not found
             ErrorJson = jiffy:encode(#{<<"error">> => <<"Package not found">>}),

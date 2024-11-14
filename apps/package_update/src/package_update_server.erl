@@ -36,7 +36,7 @@ handle_call({update, PackageID, Package_data}, _From, State) ->
                     {reply, {error, database_error}, State}
                 end;
             
-        {error, not_found} ->
+        {error, notfound} ->
             ok = database_client:put(State, <<"packages">>, PackageID, Package_data),
             {reply, {ok, inserted}, State}
     end.
@@ -109,7 +109,7 @@ test_package_found()->
         fun (_Connection, <<"packages">>, <<"package123">>) ->
                 ok;
             (_Connection, <<"packages">>, <<"bad_package">>) ->
-                {error, not_found};
+                {error, notfound};
             (_Connection, <<"packages">>, <<"databasedown">>) ->
                 {error, "Database down"}
 
