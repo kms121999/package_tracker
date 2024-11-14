@@ -3,7 +3,7 @@
 -behavior(gen_server).
 
 -export([start_link/0, update_location/3]).
--export([init/1, handle_cast/2, terminate/2]).
+-export([init/1, handle_cast/2, handle_call/3, terminate/2]).
 
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
