@@ -13,7 +13,16 @@ update_package(PackageID, Package_data) ->
     gen_server:call({?MODULE, 'backend@backend.keatonsmith.com'}, {update, PackageID, Package_data}).
 
 init([]) ->
-    {ok, #{}}.
+    lumberjack_server:info("Initializing gen_server", #{module => ?MODULE}),
+    %% Create the connection to the database database (assuming database_client:connect/0 exists)
+    case database_client:connect() of
+        {ok, Connection} ->
+            lumberjack_server:info("Connected to database", #{module => ?MODULE, connection => Connection}),
+            {ok, Connection};  %% Pass connection as the initial state
+        {error, Reason} ->
+            lumberjack_server:error("Failed to connect to database", #{module => ?MODULE, reason => Reason}),
+            {stop, Reason}  %% Stop the gen_server if connection fails
+    end.
 
 handle_call({update, PackageID, Package_data}, _From, State) ->
     %% Simulate interaction with db_client here
