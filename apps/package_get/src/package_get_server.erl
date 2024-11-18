@@ -105,6 +105,11 @@ setup() ->
     
     %% Mock the disconnect function
     meck:expect(database_client, disconnect, 1, ok),
+
+    meck:new(lumberjack_server),
+    meck:expect(lumberjack_server, info, 2, ok),
+    meck:expect(lumberjack_server, warning, 2, ok),
+    meck:expect(lumberjack_server, error, 2, ok),
     
     %% Start the package_get_server service
     {ok, Pid} = package_get_server:start_link(),
@@ -118,7 +123,8 @@ cleanup(Pid) ->
     gen_server:stop(Pid),
     
     %% Unload the meck mock for database_client
-    meck:unload(database_client).
+    meck:unload(database_client),
+    meck:unload(lumberjack_server).
 
 test_package_found()->
     StoredPackageData = #{
@@ -174,11 +180,11 @@ test_package_found()->
 	),
 
 	% happy thoughts
-    ?assertEqual({ok, FinalPackageData}, get_package_data(<<"package123">>, "req123")),
-	?assertEqual({ok, FinalPackageDataBadTruck}, get_package_data(<<"package_with_bad_truck">>, "req123")),
+    ?assertEqual({reply, {ok, FinalPackageData}, mock_connection}, handle_call({get_package_data, <<"package123">>, "req123"}, any, mock_connection)),
+    ?assertEqual({reply, {ok, FinalPackageDataBadTruck}, mock_connection}, handle_call({get_package_data, <<"package_with_bad_truck">>, "req123"}, any, mock_connection)),
     % nasty thoughts start here
-	?assertEqual({error, notfound}, get_package_data(<<"bad_package">>, "req123")),
-    ?assertEqual({error, "Database down"}, get_package_data(<<"package_with_failed_truck_get">>, "req123")),
-	?assertEqual({error, "Database down"}, get_package_data(<<"databasedown">>, "req123")).
+    ?assertEqual({reply, {error, notfound}, mock_connection}, handle_call({get_package_data, <<"bad_package">>, "req123"}, any, mock_connection)),
+    ?assertEqual({reply, {error, "Database down"}, mock_connection}, handle_call({get_package_data, <<"package_with_failed_truck_get">>, "req123"}, any, mock_connection)),
+    ?assertEqual({reply, {error, "Database down"}, mock_connection}, handle_call({get_package_data, <<"databasedown">>, "req123"}, any, mock_connection)).
 
 -endif.
