@@ -34,11 +34,17 @@ handle_call({update, PackageID, Package_data}, _From, State) ->
                     {reply, {ok, replaced}, State};
                 {error, _Reason} ->
                     {reply, {error, database_error}, State}
-                end;
+            end;
             
         {error, notfound} ->
-            ok = database_client:put(State, <<"packages">>, PackageID, Package_data),
-            {reply, {ok, inserted}, State}
+            case database_client:put(State, <<"packages">>, PackageID, Package_data) of
+                ok ->
+                    {reply, {ok, inserted}, State};
+                {error, _Reason} ->
+                    {reply, {error, database_error}, State}
+            end;
+        {error, _Reason} ->
+            {reply, {error, database_error}, State}
     end.
 
 handle_cast(Msg, Connection) ->
