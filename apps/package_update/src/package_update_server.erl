@@ -77,21 +77,26 @@ setup() ->
     
     meck:expect(database_client, disconnect, 1, ok),
 
-        %% Start the package_get_server service
-        {ok, Pid} = package_update_server:start_link(),
-    
-        %% Return the Pid to use in cleanup
-        Pid.
+    meck:new(lumberjack_server),
+    meck:expect(lumberjack_server, info, 2, ok),
+    meck:expect(lumberjack_server, warning, 2, ok),
+    meck:expect(lumberjack_server, error, 2, ok),
+
+    %% Start the package_get_server service
+    {ok, Pid} = package_update_server:start_link(),
+
+    %% Return the Pid to use in cleanup
+    Pid.
 
 cleanup(Pid) ->
     gen_server:stop(Pid),
     
     %% Unload the meck mock for database_client
-    meck:unload(database_client).
+    meck:unload(database_client),
+    meck:unload(lumberjack_server).
 
 
-test_package_found()->
-    Package123 = <<"package123">>,
+test_package_found() ->
     StoredPackageData = #{
         <<"sender">> => <<"Alice">>, 
         <<"receiver">> => <<"Bob">>, 
@@ -114,26 +119,36 @@ test_package_found()->
 
     meck:expect(database_client, get, 3, 
         fun (_Connection, <<"packages">>, <<"package123">>) ->
-                ok;
-            (_Connection, <<"packages">>, <<"bad_package">>) ->
+                {ok, StoredPackageData};
+            (_Connection, <<"packages">>, <<"notfound">>) ->
                 {error, notfound};
             (_Connection, <<"packages">>, <<"databasedown">>) ->
-                {error, "Database down"}
-
+                {error, "Database down"};
+            (_Connection, <<"packages">>, <<"foundthendown">>) ->
+                {ok, StoredPackageData};
+            (_Connection, <<"packages">>, <<"notfoundthendown">>) ->
+                {error, notfound}
         end
 	),
 
     meck:expect(database_client, put, 4, 
-        fun (_Connection, <<"packages">>, <<"package123">>, StoredData) ->
+        fun (_Connection, <<"packages">>, <<"package123">>, _StoredData) ->
                 ok;
-            (_Connection, <<"packages">>, <<"bad_package">>, StoredData) ->
-                {error, StoredPackageData};
-            (_Connection, <<"packages">>, <<"databasedown">>, StoredData) ->
+            (_Connection, <<"packages">>, <<"notfound">>, _StoredData) ->
+                ok;
+            (_Connection, <<"packages">>, <<"foundthendown">>, _StoredData) ->
+                {error, "Database down"};
+            (_Connection, <<"packages">>, <<"notfoundthendown">>, _StoredData) ->
                 {error, "Database down"}
 
         end
 	),
 
-    ?assertEqual(ok, package_update_server:update_package(Package123, StoredPackageData)).
+    ?assertEqual({reply, {ok, replaced}, mock_connection}, handle_call({update, <<"package123">>, StoredPackageData}, any, mock_connection)),
+    ?assertEqual({reply, {ok, inserted}, mock_connection}, handle_call({update, <<"notfound">>, StoredPackageData}, any, mock_connection)),
+    
+    ?assertEqual({reply, {error, database_error}, mock_connection}, handle_call({update, <<"databasedown">>, StoredPackageData}, any, mock_connection)),
+    ?assertEqual({reply, {error, database_error}, mock_connection}, handle_call({update, <<"foundthendown">>, StoredPackageData}, any, mock_connection)),
+    ?assertEqual({reply, {error, database_error}, mock_connection}, handle_call({update, <<"notfoundthendown">>, StoredPackageData}, any, mock_connection)).
 
 -endif.
