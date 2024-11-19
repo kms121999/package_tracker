@@ -2,34 +2,40 @@
 -module(truck_update_server).
 -behavior(gen_server).
 
--export([start_link/0, update_location/3]).
+-export([start_link/0, update_location/4]).
 -export([init/1, handle_cast/2, handle_call/3, terminate/2]).
 
 start_link() ->
+    lumberjack_server:info("Starting gen_server", #{module => ?MODULE}),
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
-update_location(TruckId, Lat, Long) ->
-    gen_server:cast({?MODULE, 'backend@backend.keatonsmith.com'}, {update, TruckId, Lat, Long}).
+update_location(TruckId, Lat, Long, Req_id) ->
+    lumberjack_server:info("Casting truck update", #{module => ?MODULE, truckId => TruckId, req_id => Req_id}),
+    gen_server:cast({?MODULE, 'backend@backend.keatonsmith.com'}, {update, TruckId, Lat, Long, Req_id}).
 
 init([]) ->
+    lumberjack_server:info("Initializing gen_server", #{module => ?MODULE}),
     case database_client:connect() of
         {ok, Connection} ->
+            lumberjack_server:info("Connected to database", #{module => ?MODULE, connection => Connection}),
             io:format("Connected to database for retrieval with connection: ~p~n", [Connection]),
             {ok, Connection};  %% Pass connection as the initial state
         {error, Reason} ->
+            lumberjack_server:error("Failed to connect to database", #{module => ?MODULE, reason => Reason}),
             io:format("Failed to connect to database database. Reason: ~p~n", [Reason]),
             {stop, Reason}  %% Stop the gen_server if connection fails
     end.
 
-handle_cast({update, TruckId, Lat, Long}, Connection) ->
+handle_cast({update, TruckId, Lat, Long, Req_id}, Connection) ->
+    lumberjack_server:info("Updating truck location", #{module => ?MODULE, truckId => TruckId, req_id => Req_id}),
     %% Simulate interaction with db_client here
     UpdatedTruck = #{<<"long">> => Long, <<"lat">> => Lat},
     case database_client:put(Connection, <<"trucks">>, TruckId, UpdatedTruck) of
         ok ->
-            lumberjack_server:info("Truck updated", #{module => ?MODULE}),
+            lumberjack_server:info("Truck updated", #{module => ?MODULE, truckId => TruckId, req_id => Req_id}),
             {noreply, Connection};
         {error, Reason} ->
-            lumberjack_server:error("Error updating truck data", #{module => ?MODULE, truckId => TruckId, reason => Reason}),
+            lumberjack_server:error("Error updating truck data", #{module => ?MODULE, truckId => TruckId, reason => Reason, req_id => Req_id}),
             {noreply, Connection}
         end.
 
@@ -39,6 +45,8 @@ handle_call(Msg, From, Connection) ->
 
 terminate(_Reason, Connection) ->
     %% Close the database connection
+    lumberjack_server:info("Terminating gen_server", #{module => ?MODULE}),
+    lumberjack_server:info("Disconnecting from database", #{module => ?MODULE}),
     database_client:disconnect(Connection),
     ok.
 
@@ -107,9 +115,9 @@ cleanup(Pid) ->
 test_truck_update()->
     
 	% happy thoughts
-    ?assertEqual({noreply, mock_connection}, handle_cast({update, <<"truck123">>, -72.532, 42.532}, mock_connection)),
-	?assertEqual({noreply, mock_connection}, handle_cast({update, <<"newtruck">>, -72.532, 42.532}, mock_connection)),
+    ?assertEqual({noreply, mock_connection}, handle_cast({update, <<"truck123">>, -72.532, 42.532, "req123"}, mock_connection)),
+	?assertEqual({noreply, mock_connection}, handle_cast({update, <<"newtruck">>, -72.532, 42.532, "req123"}, mock_connection)),
     % nasty thoughts start here
-	?assertEqual({noreply, mock_connection}, handle_cast({update, <<"databasedown">>, -72.532, 42.532}, mock_connection)).
+	?assertEqual({noreply, mock_connection}, handle_cast({update, <<"databasedown">>, -72.532, 42.532, "req123"}, mock_connection)).
 
 -endif.

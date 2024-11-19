@@ -19,7 +19,7 @@ init(Req=#{method := <<"POST">>}, State) ->
     lumberjack_server:info("Received truck update request", #{module => ?MODULE, truckId => TruckId, peer_ip => cowboy_req:peer(Req1), req_id => Req_id}),
 
     %% Call the truck_update server
-    truck_update_server:update_location(TruckId, Lat, Long),
+    truck_update_server:update_location(TruckId, Lat, Long, Req_id),
 
     lumberjack_server:info("Truck location update triggered", #{module => ?MODULE, truckId => TruckId, req_id => Req_id}),
 
