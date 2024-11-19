@@ -6,7 +6,7 @@
 
 
 init(Req=#{method := <<"POST">>}, State) ->
-    Req_id = maps:get(req_id, maps:get(package_tracker, Req)),
+    ReqId = maps:get(req_id, maps:get(package_tracker, Req)),
 
     {ok, Body, Req1} = cowboy_req:read_body(Req),
     ParsedData = jiffy:decode(Body, [return_maps]),
@@ -16,12 +16,12 @@ init(Req=#{method := <<"POST">>}, State) ->
     Lat = maps:get(<<"lat">>, maps:get(<<"location">>, ParsedData)),
     Long = maps:get(<<"long">>, maps:get(<<"location">>, ParsedData)),
 
-    lumberjack_server:info("Received truck update request", #{module => ?MODULE, truckId => TruckId, peer_ip => cowboy_req:peer(Req1), req_id => Req_id}),
+    lumberjack_server:info("Received truck update request", #{module => ?MODULE, truck_id => TruckId, peer_ip => cowboy_req:peer(Req1), req_id => ReqId}),
 
     %% Call the truck_update server
-    truck_update_server:update_location(TruckId, Lat, Long, Req_id),
+    truck_update_server:update_location(TruckId, Lat, Long, ReqId),
 
-    lumberjack_server:info("Truck location update triggered", #{module => ?MODULE, truckId => TruckId, req_id => Req_id}),
+    lumberjack_server:info("Truck location update triggered", #{module => ?MODULE, truck_id => TruckId, req_id => ReqId}),
 
     %% Prepare and send response
     {StatusCode, RespBody} = {202, #{status => noreply}},
@@ -30,9 +30,9 @@ init(Req=#{method := <<"POST">>}, State) ->
 
 
 init(Req0, State) ->
-    Req_id = maps:get(req_id, maps:get(package_tracker, Req0)),
+    ReqId = maps:get(req_id, maps:get(package_tracker, Req0)),
 
-    lumberjack_server:warning("Invalid request method", #{module => ?MODULE, method => cowboy_req:method(Req0), peer_ip => cowboy_req:peer(Req0), req_id => Req_id}),
+    lumberjack_server:warning("Invalid request method", #{module => ?MODULE, method => cowboy_req:method(Req0), peer_ip => cowboy_req:peer(Req0), req_id => ReqId}),
     
     Req1 = cowboy_req:reply(405, #{
         <<"allow">> => <<"POST">>

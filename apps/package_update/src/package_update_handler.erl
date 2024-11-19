@@ -6,7 +6,7 @@
 
 
 init(Req=#{method := <<"POST">>}, State) ->
-    Req_id = maps:get(req_id, maps:get(package_tracker, Req)),
+    ReqId = maps:get(req_id, maps:get(package_tracker, Req)),
 
     {ok, Body, Req1} = cowboy_req:read_body(Req),
     ParsedData = jiffy:decode(Body, [return_maps]),
@@ -15,19 +15,19 @@ init(Req=#{method := <<"POST">>}, State) ->
     PackageId = maps:get(<<"packageId">>, ParsedData),
     Data = maps:remove(PackageId, ParsedData),
 
-    lumberjack_server:info("Received package update request", #{module => ?MODULE, packageId => PackageId, peer_ip => cowboy_req:peer(Req1), req_id => Req_id}),
+    lumberjack_server:info("Received package update request", #{module => ?MODULE, package_id => PackageId, peer_ip => cowboy_req:peer(Req1), req_id => ReqId}),
 
     
     %% Call the package_update server
-    Result = package_update_server:update_package(PackageId, Data, Req_id),
+    Result = package_update_server:update_package(PackageId, Data, ReqId),
 
     %% Prepare and send response
     Response = case Result of
         {ok, Status} ->
-            lumberjack_server:info("Package updated", #{module => ?MODULE, packageId => PackageId, req_id => Req_id, status => Status}),
+            lumberjack_server:info("Package updated", #{module => ?MODULE, package_id => PackageId, req_id => ReqId, status => Status}),
             {200, #{status => Status}};
         {error, Reason} ->
-            lumberjack_server:error("Package update failed", #{module => ?MODULE, packageId => PackageId, req_id => Req_id, reason => Reason}),
+            lumberjack_server:error("Package update failed", #{module => ?MODULE, package_id => PackageId, req_id => ReqId, reason => Reason}),
             {500, #{error => Reason}}
     end,
     {StatusCode, RespBody} = Response,
@@ -36,9 +36,9 @@ init(Req=#{method := <<"POST">>}, State) ->
 
 
 init(Req0, State) ->
-    Req_id = maps:get(req_id, maps:get(package_tracker, Req0)),
+    ReqId = maps:get(req_id, maps:get(package_tracker, Req0)),
 
-    lumberjack_server:warning("Invalid request method", #{module => ?MODULE, method => cowboy_req:method(Req0), peer_ip => cowboy_req:peer(Req0), req_id => Req_id}),
+    lumberjack_server:warning("Invalid request method", #{module => ?MODULE, method => cowboy_req:method(Req0), peer_ip => cowboy_req:peer(Req0), req_id => ReqId}),
 
     Req1 = cowboy_req:reply(405, #{
         <<"allow">> => <<"POST">>

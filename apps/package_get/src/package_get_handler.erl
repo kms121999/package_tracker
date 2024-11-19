@@ -12,19 +12,19 @@
 
 %% Handle GET requests for full package data
 init(Req=#{method := <<"POST">>}, State) ->
-    Req_id = maps:get(req_id, maps:get(package_tracker, Req)),
+    ReqId = maps:get(req_id, maps:get(package_tracker, Req)),
 
     {ok, Body, Req0} = cowboy_req:read_body(Req),
     ParsedData = jiffy:decode(Body, [return_maps]),
 
     %% Extract values
     PackageId = maps:get(<<"packageId">>, ParsedData),
-    lumberjack_server:info("Received package get request", #{module => ?MODULE, packageId => PackageId, peer_ip => cowboy_req:peer(Req0), req_id => Req_id}),
+    lumberjack_server:info("Received package get request", #{module => ?MODULE, package_id => PackageId, peer_ip => cowboy_req:peer(Req0), req_id => ReqId}),
 
     %% Retrieve the full package data using truck_data_retriever:get_package_data/1
-    case package_get_server:get_package_data(PackageId, Req_id) of
+    case package_get_server:get_package_data(PackageId, ReqId) of
         {ok, PackageData} ->
-            lumberjack_server:info("Package data retrieved", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
+            lumberjack_server:info("Package data retrieved", #{module => ?MODULE, package_id => PackageId, req_id => ReqId}),
             %% Create the JSON response from PackageData
             ResponseJson = jiffy:encode(PackageData),
             %% Send 200 OK response with the package data in JSON
@@ -32,14 +32,14 @@ init(Req=#{method := <<"POST">>}, State) ->
             {ok, Req1, State};
 
         {error, notfound} ->
-            lumberjack_server:warning("Package not found", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
+            lumberjack_server:warning("Package not found", #{module => ?MODULE, package_id => PackageId, req_id => ReqId}),
             %% Handle the case where the package was not found
             ErrorJson = jiffy:encode(#{<<"error">> => <<"Package not found">>}),
             Req1 = cowboy_req:reply(404, #{<<"content-type">> => <<"application/json">>}, ErrorJson, Req0),
             {ok, Req1, State};
 
         {error, Reason} ->
-            lumberjack_server:error("Error retrieving package data", #{module => ?MODULE, reason => Reason, packageId => PackageId, req_id => Req_id}),
+            lumberjack_server:error("Error retrieving package data", #{module => ?MODULE, reason => Reason, package_id => PackageId, req_id => ReqId}),
             %% Handle any other errors
             ErrorJson = jiffy:encode(#{<<"error">> => <<"Error retrieving package data">>,
                                      <<"reason">> => Reason}),
@@ -48,9 +48,9 @@ init(Req=#{method := <<"POST">>}, State) ->
     end;
 
 init(Req0, State) ->
-    Req_id = maps:get(req_id, maps:get(package_tracker, Req0)),
+    ReqId = maps:get(req_id, maps:get(package_tracker, Req0)),
     
-    lumberjack_server:warning("Invalid request method", #{module => ?MODULE, method => cowboy_req:method(Req0), peer_ip => cowboy_req:peer(Req0), req_id => Req_id}),
+    lumberjack_server:warning("Invalid request method", #{module => ?MODULE, method => cowboy_req:method(Req0), peer_ip => cowboy_req:peer(Req0), req_id => ReqId}),
     Req1 = cowboy_req:reply(405, #{
         <<"allow">> => <<"POST">>
     }, Req0),

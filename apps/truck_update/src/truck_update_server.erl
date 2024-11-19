@@ -9,9 +9,9 @@ start_link() ->
     lumberjack_server:info("Starting gen_server", #{module => ?MODULE}),
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
-update_location(TruckId, Lat, Long, Req_id) ->
-    lumberjack_server:info("Casting truck update", #{module => ?MODULE, truckId => TruckId, req_id => Req_id}),
-    gen_server:cast({?MODULE, 'backend@backend.keatonsmith.com'}, {update, TruckId, Lat, Long, Req_id}).
+update_location(TruckId, Lat, Long, ReqId) ->
+    lumberjack_server:info("Casting truck update", #{module => ?MODULE, truck_id => TruckId, req_id => ReqId}),
+    gen_server:cast({?MODULE, 'backend@backend.keatonsmith.com'}, {update, TruckId, Lat, Long, ReqId}).
 
 init([]) ->
     lumberjack_server:info("Initializing gen_server", #{module => ?MODULE}),
@@ -26,16 +26,16 @@ init([]) ->
             {stop, Reason}  %% Stop the gen_server if connection fails
     end.
 
-handle_cast({update, TruckId, Lat, Long, Req_id}, Connection) ->
-    lumberjack_server:info("Updating truck location", #{module => ?MODULE, truckId => TruckId, req_id => Req_id}),
+handle_cast({update, TruckId, Lat, Long, ReqId}, Connection) ->
+    lumberjack_server:info("Updating truck location", #{module => ?MODULE, truck_id => TruckId, req_id => ReqId}),
     %% Simulate interaction with db_client here
     UpdatedTruck = #{<<"long">> => Long, <<"lat">> => Lat},
     case database_client:put(Connection, <<"trucks">>, TruckId, UpdatedTruck) of
         ok ->
-            lumberjack_server:info("Truck updated", #{module => ?MODULE, truckId => TruckId, req_id => Req_id}),
+            lumberjack_server:info("Truck updated", #{module => ?MODULE, truck_id => TruckId, req_id => ReqId}),
             {noreply, Connection};
         {error, Reason} ->
-            lumberjack_server:error("Error updating truck data", #{module => ?MODULE, truckId => TruckId, reason => Reason, req_id => Req_id}),
+            lumberjack_server:error("Error updating truck data", #{module => ?MODULE, truck_id => TruckId, reason => Reason, req_id => ReqId}),
             {noreply, Connection}
         end.
 

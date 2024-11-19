@@ -28,38 +28,38 @@ init([]) ->
     end.
 
 
-get_package_data(PackageId, Req_id) ->
-        lumberjack_server:info("Calling for package data", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
+get_package_data(PackageId, ReqId) ->
+        lumberjack_server:info("Calling for package data", #{module => ?MODULE, package_id => PackageId, req_id => ReqId}),
 		%% Synchronous call to the gen_server to fetch package data
-		gen_server:call({?MODULE, 'backend@backend.keatonsmith.com'}, {get_package_data, PackageId, Req_id}).
+		gen_server:call({?MODULE, 'backend@backend.keatonsmith.com'}, {get_package_data, PackageId, ReqId}).
 
 %% Handle synchronous calls
-handle_call({get_package_data, PackageId, Req_id}, _From, Connection) ->
-    lumberjack_server:info("Retrieving package data", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
+handle_call({get_package_data, PackageId, ReqId}, _From, Connection) ->
+    lumberjack_server:info("Retrieving package data", #{module => ?MODULE, package_id => PackageId, req_id => ReqId}),
     %% Query database for the package
     case database_client:get(Connection, <<"packages">>, PackageId) of
         {ok, Data} ->
             %% Found the package data, return it
             TruckId = maps:get(<<"truckId">>, Data),
-            lumberjack_server:info("Retrieving truck data", #{module => ?MODULE, truckId => TruckId, req_id => Req_id}),
+            lumberjack_server:info("Retrieving truck data", #{module => ?MODULE, truck_id => TruckId, req_id => ReqId}),
             case database_client:get(Connection, <<"trucks">>, TruckId) of
                 {ok, TruckData} ->
-                    lumberjack_server:info("Truck data retrieved", #{module => ?MODULE, req_id => Req_id}),
+                    lumberjack_server:info("Truck data retrieved", #{module => ?MODULE, req_id => ReqId}),
                     {reply, {ok, maps:put(<<"location">>, TruckData, Data)}, Connection};
                 {error, notfound} ->
-                    lumberjack_server:warning("Truck data not found", #{module => ?MODULE, truckId => TruckId, req_id => Req_id}),
+                    lumberjack_server:warning("Truck data not found", #{module => ?MODULE, truck_id => TruckId, req_id => ReqId}),
                     {reply, {ok, maps:put(<<"location">>, null, Data)}, Connection};
                 {error, Reason} ->
-                    lumberjack_server:error("Error retrieving truck data", #{module => ?MODULE, truckId => TruckId, reason => Reason, req_id => Req_id}),
+                    lumberjack_server:error("Error retrieving truck data", #{module => ?MODULE, truck_id => TruckId, reason => Reason, req_id => ReqId}),
                     {reply, {error, Reason}, Connection}
             end;
         {error, notfound} ->
             %% Handle the case where the package is not found
-            lumberjack_server:warning("Package not found", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
+            lumberjack_server:warning("Package not found", #{module => ?MODULE, package_id => PackageId, req_id => ReqId}),
             {reply, {error, notfound}, Connection};
         {error, Reason} ->
             %% General error handling
-            lumberjack_server:error("Error retrieving package", #{module => ?MODULE, packageId => PackageId, reason => Reason, req_id => Req_id}),
+            lumberjack_server:error("Error retrieving package", #{module => ?MODULE, package_id => PackageId, reason => Reason, req_id => ReqId}),
             {reply, {error, Reason}, Connection}
     end.
 
