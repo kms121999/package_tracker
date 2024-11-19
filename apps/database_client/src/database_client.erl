@@ -12,6 +12,7 @@
 %% Starts the gen_server process
 start_link() ->
     io:format("Starting database_client...~n"),
+    lumberjack_server:info("Starting gen_server", #{module => ?MODULE}),
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% API Functions that make calls to gen_server
@@ -43,6 +44,7 @@ disconnect(Connection) ->
 
 init([]) ->
     io:format("Initializing database_client...~n"),
+    lumberjack_server:info("Initializing gen_server", #{module => ?MODULE}),
     {ok, #{}}.
 
 handle_call(connect, _From, State) ->
@@ -129,4 +131,5 @@ handle_cast(Msg, State) ->
 
 terminate(_Reason, _State) ->
     io:format("Terminating database_client...~n"),
+    lumberjack_server:info("Terminating gen_server", #{module => ?MODULE}),
     ok.

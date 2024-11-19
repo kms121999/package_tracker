@@ -7,6 +7,7 @@
 -export([init/1, handle_call/3, handle_cast/2, terminate/2]).
 
 start_link() ->
+    lumberjack_server:info("Starting gen_server", #{module => ?MODULE}),
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 update_package(PackageId, Package_data, Req_id) ->
@@ -62,6 +63,8 @@ handle_cast(Msg, Connection) ->
 
 terminate(_Reason, Connection) ->
     %% Close the database connection
+    lumberjack_server:info("Terminating gen_server", #{module => ?MODULE}),
+    lumberjack_server:info("Disconnecting from database", #{module => ?MODULE}),
     database_client:disconnect(Connection),
     ok.
 
