@@ -19,7 +19,7 @@ init(Req=#{method := <<"POST">>}, State) ->
 
     
     %% Call the package_update server
-    Result = package_update_server:update_package(PackageId, Data),
+    Result = package_update_server:update_package(PackageId, Data, Req_id),
 
     %% Prepare and send response
     Response = case Result of

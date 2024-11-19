@@ -2,15 +2,16 @@
 -module(package_update_server).
 -behavior(gen_server).
 
--export([start_link/0, update_package/2]).
+-export([start_link/0, update_package/3]).
 
 -export([init/1, handle_call/3, handle_cast/2, terminate/2]).
 
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
-update_package(PackageID, Package_data) ->
-    gen_server:call({?MODULE, 'backend@backend.keatonsmith.com'}, {update, PackageID, Package_data}).
+update_package(PackageId, Package_data, Req_id) ->
+    lumberjack_server:info("Calling for package update", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
+    gen_server:call({?MODULE, 'backend@backend.keatonsmith.com'}, {update, PackageId, Package_data, Req_id}).
 
 init([]) ->
     lumberjack_server:info("Initializing gen_server", #{module => ?MODULE}),
@@ -24,26 +25,34 @@ init([]) ->
             {stop, Reason}  %% Stop the gen_server if connection fails
     end.
 
-handle_call({update, PackageID, Package_data}, _From, State) ->
+handle_call({update, PackageId, Package_data, Req_id}, _From, State) ->
+    lumberjack_server:info("Updating package", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
+
     %% Simulate interaction with db_client here
-    case database_client:get(State, <<"packages">>, PackageID) of
+    case database_client:get(State, <<"packages">>, PackageId) of
         {ok, _Data} ->
-            
-            case database_client:put(State, <<"packages">>, PackageID, Package_data) of
+            lumberjack_server:info("Package found", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
+            case database_client:put(State, <<"packages">>, PackageId, Package_data) of
                 ok ->
+                    lumberjack_server:info("Package replaced", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
                     {reply, {ok, replaced}, State};
-                {error, _Reason} ->
+                {error, Reason} ->
+                    lumberjack_server:error("Error replacing package", #{module => ?MODULE, packageId => PackageId, req_id => Req_id, reason => Reason}),
                     {reply, {error, database_error}, State}
             end;
             
         {error, notfound} ->
-            case database_client:put(State, <<"packages">>, PackageID, Package_data) of
+            lumberjack_server:info("Package not found", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
+            case database_client:put(State, <<"packages">>, PackageId, Package_data) of
                 ok ->
+                    lumberjack_server:info("Package inserted", #{module => ?MODULE, packageId => PackageId, req_id => Req_id}),
                     {reply, {ok, inserted}, State};
-                {error, _Reason} ->
+                {error, Reason} ->
+                    lumberjack_server:error("Error inserting package", #{module => ?MODULE, packageId => PackageId, req_id => Req_id, reason => Reason}),
                     {reply, {error, database_error}, State}
             end;
-        {error, _Reason} ->
+        {error, Reason} ->
+            lumberjack_server:error("Error retrieving package", #{module => ?MODULE, packageId => PackageId, req_id => Req_id, reason => Reason}),
             {reply, {error, database_error}, State}
     end.
 
@@ -144,11 +153,11 @@ test_package_found() ->
         end
 	),
 
-    ?assertEqual({reply, {ok, replaced}, mock_connection}, handle_call({update, <<"package123">>, StoredPackageData}, any, mock_connection)),
-    ?assertEqual({reply, {ok, inserted}, mock_connection}, handle_call({update, <<"notfound">>, StoredPackageData}, any, mock_connection)),
+    ?assertEqual({reply, {ok, replaced}, mock_connection}, handle_call({update, <<"package123">>, StoredPackageData, "req123"}, any, mock_connection)),
+    ?assertEqual({reply, {ok, inserted}, mock_connection}, handle_call({update, <<"notfound">>, StoredPackageData, "req123"}, any, mock_connection)),
     
-    ?assertEqual({reply, {error, database_error}, mock_connection}, handle_call({update, <<"databasedown">>, StoredPackageData}, any, mock_connection)),
-    ?assertEqual({reply, {error, database_error}, mock_connection}, handle_call({update, <<"foundthendown">>, StoredPackageData}, any, mock_connection)),
-    ?assertEqual({reply, {error, database_error}, mock_connection}, handle_call({update, <<"notfoundthendown">>, StoredPackageData}, any, mock_connection)).
+    ?assertEqual({reply, {error, database_error}, mock_connection}, handle_call({update, <<"databasedown">>, StoredPackageData, "req123"}, any, mock_connection)),
+    ?assertEqual({reply, {error, database_error}, mock_connection}, handle_call({update, <<"foundthendown">>, StoredPackageData, "req123"}, any, mock_connection)),
+    ?assertEqual({reply, {error, database_error}, mock_connection}, handle_call({update, <<"notfoundthendown">>, StoredPackageData, "req123"}, any, mock_connection)).
 
 -endif.
