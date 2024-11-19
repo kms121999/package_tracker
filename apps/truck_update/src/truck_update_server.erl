@@ -8,28 +8,28 @@
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
-update_location(TruckID, Lat, Long) ->
-    gen_server:cast({?MODULE, 'backend@backend.keatonsmith.com'}, {update, TruckID, Lat, Long}).
+update_location(TruckId, Lat, Long) ->
+    gen_server:cast({?MODULE, 'backend@backend.keatonsmith.com'}, {update, TruckId, Lat, Long}).
 
 init([]) ->
     case database_client:connect() of
         {ok, Connection} ->
-            io:format("Connected to database database for retrieval with connection: ~p~n", [Connection]),
+            io:format("Connected to database for retrieval with connection: ~p~n", [Connection]),
             {ok, Connection};  %% Pass connection as the initial state
         {error, Reason} ->
             io:format("Failed to connect to database database. Reason: ~p~n", [Reason]),
             {stop, Reason}  %% Stop the gen_server if connection fails
     end.
 
-handle_cast({update, TruckID, Lat, Long}, Connection) ->
+handle_cast({update, TruckId, Lat, Long}, Connection) ->
     %% Simulate interaction with db_client here
     UpdatedTruck = #{<<"long">> => Long, <<"lat">> => Lat},
-    case database_client:put(Connection, <<"trucks">>, TruckID, UpdatedTruck) of
+    case database_client:put(Connection, <<"trucks">>, TruckId, UpdatedTruck) of
         ok ->
             lumberjack_server:info("Truck updated", #{module => ?MODULE}),
             {noreply, Connection};
         {error, Reason} ->
-            lumberjack_server:error("Error updating truck data", #{module => ?MODULE, truckId => TruckID, reason => Reason}),
+            lumberjack_server:error("Error updating truck data", #{module => ?MODULE, truckId => TruckId, reason => Reason}),
             {noreply, Connection}
         end.
 
@@ -49,12 +49,7 @@ terminate(_Reason, Connection) ->
 %%% being done.
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
-
-% -include_lib("meck/include/meck.hrl").
  
-
-
-
 
 %% Test for truck update success and failure using mocked database_client
 truck_update_test_() ->
@@ -67,24 +62,12 @@ truck_update_test_() ->
         ]
     }.
 
-%% Setup function to mock database_client before each test
-% setup() ->
-%     %% Start mocking the database_client module
-%     meck:new(database_client),
-    
-%     %% Mock the connect function to always succeed
-%     meck:expect(database_client, connect, 0, {ok, mock_connection}),
-    
-%     %% Mock the disconnect function
-%     meck:expect(database_client, disconnect, 1, ok),
-    
-%     %% Start the truck_update_server service
-%     {ok, Pid} = truck_update_server:start_link(),
-    
-%     %% Return the Pid to use in cleanup
-%     Pid.
-
 setup() ->
+    meck:new(lumberjack_server),
+    meck:expect(lumberjack_server, info, 2, ok),
+    meck:expect(lumberjack_server, warning, 2, ok),
+    meck:expect(lumberjack_server, error, 2, ok),
+
     %% Start mocking the database_client module
     meck:new(database_client),
     
@@ -94,23 +77,12 @@ setup() ->
     %% Mock the disconnect function
     meck:expect(database_client, disconnect, 1, ok),
 
-    % Mock the get function for retrieving trucks
-    meck:expect(database_client, get, 3, 
-        fun (_Connection, <<"trucks">>, <<"truck123">>) ->
-                {ok, #{latitude => 0.0, longitude => 0.0}};
-            (_Connection, <<"trucks">>, <<"truck321">>) ->
-                {error, notfound};
-            (_Connection, <<"trucks">>, <<"databasedown">>) ->
-                {error, "Database down"}
-        end
-    ),
-
     % %% Mock the put function to simulate database updates and inserts
     meck:expect(database_client, put, 4, 
         fun (_Connection, <<"trucks">>, <<"truck123">>, _Data) ->
-                {ok, updated};
-            (_Connection, <<"trucks">>, <<"truck321">>, _Data) ->
-                {ok, inserted};
+                ok;
+            (_Connection, <<"trucks">>, <<"newtruck">>, _Data) ->
+                ok;
             (_Connection, <<"trucks">>, <<"databasedown">>, _Data) ->
                 {error, "Database down"}
         end
@@ -129,26 +101,15 @@ cleanup(Pid) ->
     gen_server:stop(Pid),
     
     %% Unload the meck mock for database_client
+    meck:unload(lumberjack_server),
     meck:unload(database_client).
 
 test_truck_update()->
     
-	 %% Mock the get function to return truck data when requested
-    % meck:expect(database_client, put, 4, 
-    %     fun (_Connection, <<"trucks">>, <<"truck123">>, _Data) ->
-    %             {ok, updated};
-    %         (_Connection, <<"trucks">>, <<"truck321">>, _Data) ->
-    %             {ok, inserted};
-    %         (_Connection, <<"trucks">>, <<"databasedown">>, _Data) ->
-    %             {error, "Database down"}
-    %     end
-	% ),
-
 	% happy thoughts
-    ?assertEqual(ok, update_location(<<"truck123">>, -72.532, 42.532)),
-	?assertEqual(ok, update_location(<<"truck321">>, -72.532, 42.532)),
+    ?assertEqual({noreply, mock_connection}, handle_cast({update, <<"truck123">>, -72.532, 42.532}, mock_connection)),
+	?assertEqual({noreply, mock_connection}, handle_cast({update, <<"newtruck">>, -72.532, 42.532}, mock_connection)),
     % nasty thoughts start here
-	?assertEqual(ok, update_location(<<"databasedown">>, -72.532, 42.532)).
-
+	?assertEqual({noreply, mock_connection}, handle_cast({update, <<"databasedown">>, -72.532, 42.532}, mock_connection)).
 
 -endif.
