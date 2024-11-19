@@ -62,12 +62,16 @@ handle_call({put, Connection, Bucket, Key, Data}, _From, State) ->
 
     case Connection of
         undefined ->
+            lumberjack_server:error("No connection to database", #{module => ?MODULE, node => node(), bucket => Bucket, key => Key, connection => Connection}),
             {reply, {error, no_connection}, State};
         Pid ->
             Object = riakc_obj:new(Bucket, Key, Data),
             case riakc_pb_socket:put(Pid, Object) of
-                ok -> {reply, ok, State};
-                {error, Reason} -> {reply, {error, Reason}, State}
+                ok ->
+                    {reply, ok, State};
+                {error, Reason} ->
+                    lumberjack_server:error("Error putting to database", #{module => ?MODULE, node => node(), bucket => Bucket, key => Key, connection => Connection, reason => Reason}),
+                    {reply, {error, Reason}, State}
             end
     end;
 
@@ -77,11 +81,14 @@ handle_call({get, Connection, Bucket, Key}, _From, State) ->
 
     case Connection of
         undefined ->
+            lumberjack_server:error("No connection to database", #{module => ?MODULE, node => node(), bucket => Bucket, key => Key, connection => Connection}),
             {reply, {error, no_connection}, State};
         Pid ->
             case riakc_pb_socket:get(Pid, Bucket, Key) of
                 {ok, Obj} -> {reply, {ok, binary_to_term(riakc_obj:get_value(Obj))}, State};
-                {error, Reason} -> {reply, {error, Reason}, State}
+                {error, Reason} ->
+                    lumberjack_server:error("Error getting from database", #{module => ?MODULE, node => node(), bucket => Bucket, key => Key, connection => Connection, reason => Reason}),
+                    {reply, {error, Reason}, State}
             end
     end;
 
@@ -91,11 +98,14 @@ handle_call({delete, Connection, Bucket, Key}, _From, State) ->
 
     case Connection of
         undefined ->
+            lumberjack_server:error("No connection to database", #{module => ?MODULE, node => node(), bucket => Bucket, key => Key, connection => Connection}),
             {reply, {error, no_connection}, State};
         Pid ->
             case riakc_pb_socket:delete(Pid, Bucket, Key) of
                 ok -> {reply, ok, State};
-                {error, Reason} -> {reply, {error, Reason}, State}
+                {error, Reason} ->
+                    lumberjack_server:error("Error deleting from database", #{module => ?MODULE, node => node(), bucket => Bucket, key => Key, connection => Connection, reason => Reason}),
+                    {reply, {error, Reason}, State}
             end
     end;
 
