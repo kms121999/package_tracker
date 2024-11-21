@@ -42,7 +42,7 @@ init([]) ->
     {ok, EventManager} = gen_event:start_link(),
     gen_event:add_handler(EventManager, lumberjack_console_handler, []),
     gen_event:add_handler(EventManager, lumberjack_file_handler, ["./lumberjack.log"]),
-    gen_event:add_handler(EventManager, lumberjack_rabbitmq_handler, [{host, "rabbitmq.keatonsmith.com"}, {port, 5672}, {username, <<"dev">>}, {password, <<"package-tracker123">>}, {exchange, <<"amq.fanout">>}]),
+    gen_event:add_handler(EventManager, lumberjack_rabbitmq_handler, [{host, "rabbitmq.keatonsmith.com"}, {port, 5672}, {username, <<"dev">>}, {password, <<"package-tracker123">>}, {exchange, <<"amq.direct">>}]),
     {ok, EventManager}.
 
 %% Handle synchronous calls
