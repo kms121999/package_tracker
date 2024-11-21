@@ -18,7 +18,9 @@ init([{host, Host}, {port, Port}, {username, Username}, {password, Password}, {e
     %% Start RabbitMQ connection
     Return = amqp_connection:start(#amqp_params_network{
         host = Host,
-        port = Port
+        port = Port,
+        username = Username,
+        password = Password
     }),
 
     io:format("Connection attempt returned: ~p~n", [Return]),
