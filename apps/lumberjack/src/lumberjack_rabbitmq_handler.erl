@@ -10,10 +10,10 @@
 init([{host, Host}, {port, Port}, {user, User}, {password, Password}, {exchange, Exchange}]) ->
     %% Start RabbitMQ connection
     {ok, Connection} = amqp_connection:start(#amqp_params_network{
-        host => Host,
-        port => Port,
-        username => User,
-        password => Password}),
+        host = Host,
+        port = Port,
+        username = User,
+        password = Password}),
     {ok, Channel} = amqp_connection:open_channel(Connection),
     
     %% Declare the exchange
