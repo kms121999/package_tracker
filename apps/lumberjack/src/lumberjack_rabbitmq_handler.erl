@@ -8,14 +8,32 @@
 
 %% Initialization
 init([{host, Host}, {port, Port}, {username, User}, {password, Password}, {exchange, Exchange}]) ->
+    io:format("Attempting to connect to RabbitMQ...~n"),
     %% Start RabbitMQ connection
-    {ok, Connection} = amqp_connection:start(#amqp_params_network{
+    Return = amqp_connection:start(#amqp_params_network{
         host = Host,
         port = Port,
         username = User,
         password = Password
     }),
-    {ok, Channel} = amqp_connection:open_channel(Connection),
+
+    io:format("Connection attempt returned: ~p~n", [Return]),
+
+    {ok, Connection} = Return,
+
+    io:format("Connection is: ~p~n", [Connection]),
+    io:format("Attempting to open channel...~n"),
+
+
+    Result = amqp_connection:open_channel(Connection),
+
+    io:format("Channel open attempt returned: ~p~n", [Result]),
+
+    {ok, Channel} = Result,
+
+    io:format("Channel is: ~p~n", [Channel]),
+
+    io:format("Attempting to declare exchange...~n"),
     
     %% Declare the exchange
     amqp_channel:call(Channel, #'exchange.declare'{
