@@ -57,14 +57,12 @@ handle_event({Level, _GL, {Logger, Msg, _Ts, _Md}}, State) ->
     Exchange = maps:get(exchange, State),
     
     %% Format the log message
-    FormattedMsg = io_lib:format("[~p] ~p: ~s", [Level, Logger, Msg]),
+    FormattedMsg = list_to_binary(io_lib:format("[~p] ~p: ~s", [Level, Logger, Msg])),
     
     %% Publish the message to RabbitMQ
     amqp_channel:cast(Channel, #'basic.publish'{
         exchange = Exchange,
-        routing_key = <<"logs">>,
-        mandatory = false,
-        immediate = false
+        routing_key = <<"logs">>
     }, #amqp_msg{payload = FormattedMsg}),
     
     {ok, State};
