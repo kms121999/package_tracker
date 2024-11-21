@@ -7,20 +7,18 @@
 
 
 %% Initialization
-init([{host, Host}, {port, Port}, {username, User}, {password, Password}, {exchange, Exchange}]) ->
+init([{host, Host}, {port, Port}, {username, Username}, {password, Password}, {exchange, Exchange}]) ->
     io:format("Attempting to connect to RabbitMQ...~n"),
     io:format("Host: ~p~n", [Host]),
     io:format("Port: ~p~n", [Port]),
-    io:format("Username: ~p~n", [User]),
+    io:format("Username: ~p~n", [Username]),
     io:format("Password: ~p~n", [Password]),
     io:format("Exchange: ~p~n", [Exchange]),
-    
+
     %% Start RabbitMQ connection
     Return = amqp_connection:start(#amqp_params_network{
         host = Host,
-        port = Port,
-        username = User,
-        password = Password
+        port = Port
     }),
 
     io:format("Connection attempt returned: ~p~n", [Return]),
