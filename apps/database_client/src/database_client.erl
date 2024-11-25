@@ -60,7 +60,6 @@ handle_call(connect, _From, State) ->
 
 handle_call({put, Connection, Bucket, Key, Data}, _From, State) ->
     lumberjack_server:info("Saving data to database", #{module => ?MODULE, bucket => Bucket, key => Key, node => node()}),
-    io:format("Saving data to database: Bucket=~p, Key=~p, Data=~p~n", [Bucket, Key, Data]), %% Debugging
 
     case Connection of
         undefined ->
@@ -79,7 +78,6 @@ handle_call({put, Connection, Bucket, Key, Data}, _From, State) ->
 
 handle_call({get, Connection, Bucket, Key}, _From, State) ->
     lumberjack_server:info("Retrieving data from database", #{module => ?MODULE, bucket => Bucket, key => Key, node => node()}),
-    io:format("Getting data from Riak: Bucket=~p, Key=~p~n", [Bucket, Key]), %% Debugging
 
     case Connection of
         undefined ->
@@ -96,7 +94,6 @@ handle_call({get, Connection, Bucket, Key}, _From, State) ->
 
 handle_call({delete, Connection, Bucket, Key}, _From, State) ->
     lumberjack_server:info("Deleting data from database", #{module => ?MODULE, bucket => Bucket, key => Key, node => node()}),
-    io:format("Deleting data from Riak: Bucket=~p, Key=~p~n", [Bucket, Key]), %% Debugging
 
     case Connection of
         undefined ->
