@@ -26,18 +26,15 @@ start(_StartType, _StartArgs) ->
         % {"packages.localhost", [{"/:package_id", package_get_handler, []}]}
     ]),
 
-    {ok, _} = cowboy:start_clear(http_listener, [{port, 80}], #{
-        env => #{dispatch => Dispatch},
-        middlewares => Middlewares
-    }),
-
-    % TODO, setup ssl
-    % PrivDir = code:priv_dir(silly_server),
-    % {ok, _} = cowboy:start_tls(https_listener, [
-    %     {port, 443},
-    %     {certfile, filename:join([PrivDir, "ssl", "server.crt"])},
-    %     {keyfile, filename:join([PrivDir, "ssl", "server.key"])}
-    % ]),
+    %tls stands for transport layer security
+    {ok,_} = cowboy:start_tls(https_listener, [
+                            {port, 443},
+                            {certfile, "/etc/letsencrypt/live/frontend.keatonsmith.com/fullchain.pem"},
+                            {keyfile, "/etc/letsencrypt/live/frontend.keatonsmith.com/privkey.pem"}
+                    ], #{
+                        env => #{dispatch => Dispatch},
+                        middlewares => Middlewares
+                    }),
 
     package_tracker_sup:start_link().
 
