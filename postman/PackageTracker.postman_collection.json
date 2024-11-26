@@ -26,8 +26,8 @@
 					}
 				},
 				"url": {
-					"raw": "http://frontend.keatonsmith.com/truck/update",
-					"protocol": "http",
+					"raw": "https://frontend.keatonsmith.com/truck/update",
+					"protocol": "https",
 					"host": [
 						"frontend",
 						"keatonsmith",
@@ -61,8 +61,8 @@
 					}
 				},
 				"url": {
-					"raw": "http://frontend.keatonsmith.com/package/update",
-					"protocol": "http",
+					"raw": "https://frontend.keatonsmith.com/package/update",
+					"protocol": "https",
 					"host": [
 						"frontend",
 						"keatonsmith",
@@ -79,16 +79,25 @@
 		{
 			"name": "Get Package",
 			"request": {
-				"method": "GET",
+				"method": "POST",
 				"header": [
 					{
 						"key": "Content-Type",
 						"value": "application/json"
 					}
 				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"packageId\": \"package123\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
-					"raw": "http://frontend.keatonsmith.com/package/get",
-					"protocol": "http",
+					"raw": "https://frontend.keatonsmith.com/package/get",
+					"protocol": "https",
 					"host": [
 						"frontend",
 						"keatonsmith",
