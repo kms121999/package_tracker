@@ -40,7 +40,7 @@ error(Message, Metadata) ->
 init([]) ->
     %% Start the event manager to handle log events
     {ok, EventManager} = gen_event:start_link(),
-    gen_event:add_handler(EventManager, lumberjack_console_handler, []),
+    % gen_event:add_handler(EventManager, lumberjack_console_handler, []),
     gen_event:add_handler(EventManager, lumberjack_file_handler, ["./lumberjack.log"]),
     {ok, EventManager}.
 
