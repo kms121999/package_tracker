@@ -29,31 +29,12 @@ init([]) ->
 handle_call({update, PackageId, Package_data, ReqId}, _From, State) ->
     lumberjack_server:info("Updating package", #{module => ?MODULE, package_id => PackageId, req_id => ReqId}),
 
-    %% Simulate interaction with db_client here
-    case database_client:get(State, <<"packages">>, PackageId) of
-        {ok, _Data} ->
-            lumberjack_server:info("Package found", #{module => ?MODULE, package_id => PackageId, req_id => ReqId}),
-            case database_client:put(State, <<"packages">>, PackageId, Package_data) of
-                ok ->
-                    lumberjack_server:info("Package replaced", #{module => ?MODULE, package_id => PackageId, req_id => ReqId}),
-                    {reply, {ok, replaced}, State};
-                {error, Reason} ->
-                    lumberjack_server:error("Error replacing package", #{module => ?MODULE, package_id => PackageId, req_id => ReqId, reason => Reason}),
-                    {reply, {error, database_error}, State}
-            end;
-            
-        {error, notfound} ->
-            lumberjack_server:info("Package not found", #{module => ?MODULE, package_id => PackageId, req_id => ReqId}),
-            case database_client:put(State, <<"packages">>, PackageId, Package_data) of
-                ok ->
-                    lumberjack_server:info("Package inserted", #{module => ?MODULE, package_id => PackageId, req_id => ReqId}),
-                    {reply, {ok, inserted}, State};
-                {error, Reason} ->
-                    lumberjack_server:error("Error inserting package", #{module => ?MODULE, package_id => PackageId, req_id => ReqId, reason => Reason}),
-                    {reply, {error, database_error}, State}
-            end;
+    case database_client:put(State, <<"packages">>, PackageId, Package_data) of
+        ok ->
+            lumberjack_server:info("Package replaced", #{module => ?MODULE, package_id => PackageId, req_id => ReqId}),
+            {reply, {ok, replaced}, State};
         {error, Reason} ->
-            lumberjack_server:error("Error retrieving package", #{module => ?MODULE, package_id => PackageId, req_id => ReqId, reason => Reason}),
+            lumberjack_server:error("Error replacing package", #{module => ?MODULE, package_id => PackageId, req_id => ReqId, reason => Reason}),
             {reply, {error, database_error}, State}
     end.
 
