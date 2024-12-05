@@ -22,7 +22,8 @@ add_handler(Handler) ->
 
 %% API to log messages with custom level
 log(Level, Message, Metadata) ->
-    gen_server:cast({?MODULE, 'backend@backend.keatonsmith.com'}, {log, Level, Message, Metadata}).
+    ok.
+    % gen_server:cast({?MODULE, 'backend@backend.keatonsmith.com'}, {log, Level, Message, Metadata}).
 
 %% Convenience API to log info messages
 info(Message, Metadata) ->
