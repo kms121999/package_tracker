@@ -13,13 +13,12 @@ init(Req=#{method := <<"POST">>}, State) ->
 
     %% Extract values
     PackageId = maps:get(<<"packageId">>, ParsedData),
-    Data = maps:remove(PackageId, ParsedData),
 
     lumberjack_server:info("Received package update request", #{module => ?MODULE, package_id => PackageId, peer_ip => cowboy_req:peer(Req1), req_id => ReqId}),
 
     
     %% Call the package_update server
-    Result = package_update_server:update_package(PackageId, Data, ReqId),
+    Result = package_update_server:update_package(PackageId, ParsedData, ReqId),
 
     %% Prepare and send response
     Response = case Result of
