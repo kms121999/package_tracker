@@ -10,8 +10,8 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 update_location(Data, ReqId) ->
-    lumberjack_server:info("Casting truck update", #{module => ?MODULE, truck_id => TruckId, req_id => ReqId}),
-    gen_server:cast({?MODULE, 'backend@backend.keatonsmith.com'}, {update, TruckId, Data, ReqId}).
+    % lumberjack_server:info("Casting truck update", #{module => ?MODULE, req_id => ReqId}),
+    gen_server:cast({?MODULE, 'backend@backend.keatonsmith.com'}, {update, Data, ReqId}).
 
 init([]) ->
     lumberjack_server:info("Initializing gen_server", #{module => ?MODULE}),
