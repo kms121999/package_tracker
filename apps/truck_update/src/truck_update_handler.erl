@@ -13,13 +13,11 @@ init(Req=#{method := <<"POST">>}, State) ->
 
     %% Extract values
     TruckId = maps:get(<<"truckId">>, ParsedData),
-    Lat = maps:get(<<"lat">>, maps:get(<<"location">>, ParsedData)),
-    Long = maps:get(<<"long">>, maps:get(<<"location">>, ParsedData)),
 
     lumberjack_server:info("Received truck update request", #{module => ?MODULE, truck_id => TruckId, peer_ip => cowboy_req:peer(Req1), req_id => ReqId}),
 
     %% Call the truck_update server
-    truck_update_server:update_location(TruckId, Lat, Long, ReqId),
+    truck_update_server:update_location(TruckId, ParsedData, ReqId),
 
     lumberjack_server:info("Truck location update triggered", #{module => ?MODULE, truck_id => TruckId, req_id => ReqId}),
 

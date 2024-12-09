@@ -9,9 +9,9 @@ start_link() ->
     lumberjack_server:info("Starting gen_server", #{module => ?MODULE}),
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
-update_location(TruckId, Lat, Long, ReqId) ->
+update_location(TruckId, Data, ReqId) ->
     lumberjack_server:info("Casting truck update", #{module => ?MODULE, truck_id => TruckId, req_id => ReqId}),
-    gen_server:cast({?MODULE, 'backend@backend.keatonsmith.com'}, {update, TruckId, Lat, Long, ReqId}).
+    gen_server:cast({?MODULE, 'backend@backend.keatonsmith.com'}, {update, TruckId, Data, ReqId}).
 
 init([]) ->
     lumberjack_server:info("Initializing gen_server", #{module => ?MODULE}),
@@ -26,11 +26,10 @@ init([]) ->
             {stop, Reason}  %% Stop the gen_server if connection fails
     end.
 
-handle_cast({update, TruckId, Lat, Long, ReqId}, Connection) ->
+handle_cast({update, TruckId, Data, ReqId}, Connection) ->
     lumberjack_server:info("Updating truck location", #{module => ?MODULE, truck_id => TruckId, req_id => ReqId}),
     %% Simulate interaction with db_client here
-    UpdatedTruck = #{<<"long">> => Long, <<"lat">> => Lat},
-    case database_client:put(Connection, <<"trucks">>, TruckId, UpdatedTruck) of
+    case database_client:put(Connection, <<"trucks">>, TruckId, Data) of
         ok ->
             lumberjack_server:info("Truck updated", #{module => ?MODULE, truck_id => TruckId, req_id => ReqId}),
             {noreply, Connection};
