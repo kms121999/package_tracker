@@ -9,12 +9,11 @@ init(Req=#{method := <<"POST">>}, State) ->
     ReqId = 123, %maps:get(req_id, maps:get(package_tracker, Req)),
 
     {ok, Body, Req1} = cowboy_req:read_body(Req),
-    ParsedData = jiffy:decode(Body, [return_maps]),
 
     % lumberjack_server:info("Received truck update request", #{module => ?MODULE, truck_id => TruckId, peer_ip => cowboy_req:peer(Req1), req_id => ReqId}),
 
     %% Call the truck_update server
-    truck_update_server:update_location(ParsedData, ReqId),
+    truck_update_server:update_location(Body, ReqId),
 
     % lumberjack_server:info("Truck location update triggered", #{module => ?MODULE, truck_id => TruckId, req_id => ReqId}),
 

@@ -26,7 +26,9 @@ init([]) ->
             {stop, Reason}  %% Stop the gen_server if connection fails
     end.
 
-handle_cast({update, Data, ReqId}, Connection) ->
+handle_cast({update, RawData, ReqId}, Connection) ->
+    
+    Data = jiffy:decode(RawData, [return_maps]),
     %% Extract values
     TruckId = maps:get(<<"truckId">>, Data),
 
