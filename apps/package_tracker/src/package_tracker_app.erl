@@ -21,7 +21,8 @@ start(_StartType, _StartArgs) ->
         {'_', [
             {"/package/get", package_get_handler, []},
             {"/truck/update", truck_update_handler, []},
-            {"/package/update", package_update_handler, []}
+            {"/package/update", package_update_handler, []},
+            {"/", health_check_handler, []}
         ]}
         % {"packages.localhost", [{"/:package_id", package_get_handler, []}]}
     ]),
