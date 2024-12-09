@@ -6,24 +6,20 @@
 
 
 init(Req=#{method := <<"POST">>}, State) ->
-    ReqId = maps:get(req_id, maps:get(package_tracker, Req)),
+    ReqId = 123, %maps:get(req_id, maps:get(package_tracker, Req)),
 
     {ok, Body, Req1} = cowboy_req:read_body(Req),
     ParsedData = jiffy:decode(Body, [return_maps]),
 
-    %% Extract values
-    TruckId = maps:get(<<"truckId">>, ParsedData),
-
-    lumberjack_server:info("Received truck update request", #{module => ?MODULE, truck_id => TruckId, peer_ip => cowboy_req:peer(Req1), req_id => ReqId}),
+    % lumberjack_server:info("Received truck update request", #{module => ?MODULE, truck_id => TruckId, peer_ip => cowboy_req:peer(Req1), req_id => ReqId}),
 
     %% Call the truck_update server
-    truck_update_server:update_location(TruckId, ParsedData, ReqId),
+    truck_update_server:update_location(ParsedData, ReqId),
 
-    lumberjack_server:info("Truck location update triggered", #{module => ?MODULE, truck_id => TruckId, req_id => ReqId}),
+    % lumberjack_server:info("Truck location update triggered", #{module => ?MODULE, truck_id => TruckId, req_id => ReqId}),
 
     %% Prepare and send response
-    {StatusCode, RespBody} = {202, #{status => noreply}},
-    Req2 = cowboy_req:reply(StatusCode, #{<<"content-type">> => <<"application/json">>}, jiffy:encode(RespBody), Req1),
+    Req2 = cowboy_req:reply(202, #{<<"content-type">> => <<"application/json">>}, jiffy:encode(#{status => noreply}), Req1),
     {ok, Req2, State};
 
 

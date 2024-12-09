@@ -2,14 +2,14 @@
 -module(truck_update_server).
 -behavior(gen_server).
 
--export([start_link/0, update_location/3]).
+-export([start_link/0, update_location/2]).
 -export([init/1, handle_cast/2, handle_call/3, terminate/2]).
 
 start_link() ->
     lumberjack_server:info("Starting gen_server", #{module => ?MODULE}),
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
-update_location(TruckId, Data, ReqId) ->
+update_location(Data, ReqId) ->
     lumberjack_server:info("Casting truck update", #{module => ?MODULE, truck_id => TruckId, req_id => ReqId}),
     gen_server:cast({?MODULE, 'backend@backend.keatonsmith.com'}, {update, TruckId, Data, ReqId}).
 
@@ -26,7 +26,10 @@ init([]) ->
             {stop, Reason}  %% Stop the gen_server if connection fails
     end.
 
-handle_cast({update, TruckId, Data, ReqId}, Connection) ->
+handle_cast({update, Data, ReqId}, Connection) ->
+    %% Extract values
+    TruckId = maps:get(<<"truckId">>, Data),
+
     lumberjack_server:info("Updating truck location", #{module => ?MODULE, truck_id => TruckId, req_id => ReqId}),
     %% Simulate interaction with db_client here
     case database_client:put(Connection, <<"trucks">>, TruckId, Data) of
@@ -36,7 +39,7 @@ handle_cast({update, TruckId, Data, ReqId}, Connection) ->
         {error, Reason} ->
             lumberjack_server:error("Error updating truck data", #{module => ?MODULE, truck_id => TruckId, reason => Reason, req_id => ReqId}),
             {noreply, Connection}
-        end.
+    end.
 
 handle_call(Msg, From, Connection) ->
     lumberjack_server:warning("Unimplemented method called: handle_call", #{module => ?MODULE, from => From, message => Msg}),
