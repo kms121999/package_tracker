@@ -19,7 +19,7 @@ init(Req=#{method := <<"POST">>}, State) ->
     % lumberjack_server:info("Truck location update triggered", #{module => ?MODULE, truck_id => TruckId, req_id => ReqId}),
 
     %% Prepare and send response
-    Req2 = cowboy_req:reply(202, #{<<"content-type">> => <<"application/json">>}, jiffy:encode(#{status => noreply}), Req1),
+    Req2 = cowboy_req:reply(202, #{}, Req1),
     {ok, Req2, State};
 
 
