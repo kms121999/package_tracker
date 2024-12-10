@@ -3,14 +3,14 @@
 %% @end
 %%%-------------------------------------------------------------------
 
--module(database_client_app).
+-module(round_robin_app).
 
 -behavior(application).
 
 -export([start/2, stop/1]).
 
 start(_StartType, _StartArgs) ->
-    database_client_sup:start_link().
+    round_robin_sup:start_link().
 
 stop(_State) ->
     ok.

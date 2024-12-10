@@ -1,4 +1,4 @@
--module(database_client_sup).
+-module(round_robin_sup).
 -behavior(supervisor).
 
 -export([start_link/0]).
@@ -10,27 +10,19 @@
 start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
-%% sup_flags() = #{strategy => strategy(),         % optional
-%%                 intensity => non_neg_integer(), % optional
-%%                 period => pos_integer()}        % optional
-%% child_spec() = #{id => child_id(),       % mandatory
-%%                  start => mfargs(),      % mandatory
-%%                  restart => restart(),   % optional
-%%                  shutdown => shutdown(), % optional
-%%                  type => worker(),       % optional
-%%                  modules => modules()}   % optional
+
 init([]) ->
     %% Define the child specification for Cowboy
     SupFlags = #{strategy => one_for_all,
                  intensity => 0,
                  period => 1},
     ChildSpecs = [
-        #{id => database_client,
-          start => {database_client, start_link, []},
+        #{id => round_robin,
+          start => {round_robin, start_link, []},
           restart => permanent,
           shutdown => 5000,
           type => worker,
-          modules => [database_client]
+          modules => [round_robin]
         }
     ],
     
