@@ -12,7 +12,7 @@
 
 %% Handle GET requests for full package data
 init(Req=#{method := <<"POST">>}, State) ->
-    ReqId = maps:get(req_id, maps:get(package_tracker, Req)),
+    ReqId = 123, % maps:get(req_id, maps:get(package_tracker, Req)),
 
     {ok, Body, Req0} = cowboy_req:read_body(Req),
     ParsedData = jiffy:decode(Body, [return_maps]),
@@ -48,7 +48,7 @@ init(Req=#{method := <<"POST">>}, State) ->
     end;
 
 init(Req0, State) ->
-    ReqId = maps:get(req_id, maps:get(package_tracker, Req0)),
+    ReqId = 123, %maps:get(req_id, maps:get(package_tracker, Req0)),
     
     lumberjack_server:warning("Invalid request method", #{module => ?MODULE, method => cowboy_req:method(Req0), peer_ip => cowboy_req:peer(Req0), req_id => ReqId}),
     Req1 = cowboy_req:reply(405, #{

@@ -24,7 +24,7 @@ init(Req=#{method := <<"POST">>}, State) ->
 
 
 init(Req0, State) ->
-    ReqId = maps:get(req_id, maps:get(package_tracker, Req0)),
+    ReqId = 123, % maps:get(req_id, maps:get(package_tracker, Req0)),
 
     lumberjack_server:warning("Invalid request method", #{module => ?MODULE, method => cowboy_req:method(Req0), peer_ip => cowboy_req:peer(Req0), req_id => ReqId}),
     

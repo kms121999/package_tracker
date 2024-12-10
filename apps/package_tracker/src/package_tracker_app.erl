@@ -11,8 +11,8 @@
 
 start(_StartType, _StartArgs) ->
     Middlewares = [
-        req_id_middleware,
-        logger_middleware,
+        % req_id_middleware,
+        % logger_middleware,
         cowboy_router,
         cowboy_handler
     ],
