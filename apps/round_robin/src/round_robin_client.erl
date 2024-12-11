@@ -1,4 +1,4 @@
--module(round_robin).
+-module(round_robin_client).
 -behaviour(gen_server).
 
 %% API Functions

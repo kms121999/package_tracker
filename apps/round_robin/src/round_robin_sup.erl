@@ -18,11 +18,11 @@ init([]) ->
                  period => 1},
     ChildSpecs = [
         #{id => round_robin,
-          start => {round_robin, start_link, []},
+          start => {round_robin_client, start_link, []},
           restart => permanent,
           shutdown => 5000,
           type => worker,
-          modules => [round_robin]
+          modules => [round_robin_client]
         }
     ],
     
