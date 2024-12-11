@@ -4,15 +4,15 @@
 -export([connect/0, put/4, get/3, delete/3, disconnect/1]).
 
 connect() ->
-    lumberjack_server:info("Connecting to database", #{module => ?MODULE, node => node()}),
+    % lumberjack_server:info("Connecting to database", #{module => ?MODULE, node => node()}),
 
-    lumberjack_server:info("Creating connection to database", #{module => ?MODULE, node => node()}),
-    io:format("Connecting to database...~n"), %% Debugging
+    % lumberjack_server:info("Creating connection to database", #{module => ?MODULE, node => node()}),
+    % io:format("Connecting to database...~n"), %% Debugging
 
-    {ok, Pid} = riakc_pb_socket:start_link("127.0.0.1", 8087),
+    {ok, Pid} = riakc_pb_socket:start_link("riak.keatonsmith.com", 8087),
 
-    lumberjack_server:info("Connection established", #{module => ?MODULE, connection => Pid, node => node()}),
-    io:format("Connected to database with Pid: ~p~n", [Pid]), %% Debugging
+    % lumberjack_server:info("Connection established", #{module => ?MODULE, connection => Pid, node => node()}),
+    % io:format("Connected to database with Pid: ~p~n", [Pid]), %% Debugging
     {ok, Pid}.
     
 
