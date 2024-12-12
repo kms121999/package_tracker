@@ -5,4 +5,4 @@ if [ -z "$1" ]; then
     exit 1
 fi
 echo "Starting $1@$1.keatonsmith.com"
-rebar3 shell --relname=$1 --name $1$2@$1.keatonsmith.com --setcookie package_tracker_cookie
+rebar3 shell --relname=$1 --name $1$2@$1$2.keatonsmith.com --setcookie package_tracker_cookie
