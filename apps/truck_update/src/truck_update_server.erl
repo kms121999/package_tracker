@@ -11,7 +11,8 @@ start_link() ->
 
 update_location(Data, ReqId) ->
     % lumberjack_server:info("Casting truck update", #{module => ?MODULE, req_id => ReqId}),
-    gen_server:cast({?MODULE, 'backend@backend.keatonsmith.com'}, {update, Data, ReqId}).
+    Node = round_robin_client:next_node(),
+    gen_server:cast({?MODULE, Node}, {update, Data, ReqId}).
 
 init([]) ->
     lumberjack_server:info("Initializing gen_server", #{module => ?MODULE}),

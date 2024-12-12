@@ -15,19 +15,22 @@
 
 %% API: Start the GenServer
 start_link(Nodes) ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, Nodes, []).
+    gen_server:start_link({local, ?MODULE}, ?MODULE, Nodes, [
+        'backend.keatonsmith.com',
+        'backend2.keatonsmith.com'
+    ]).
 
 %% API: Get the Next Node
 next_node() ->
-    gen_server:call(?MODULE, get_next).
+    gen_server:call({?MODULE, 'roundrobin@roundrobin.keatonsmith.com'}, get_next).
 
 %% API: Add a Node
 add_node(Node) ->
-    gen_server:cast(?MODULE, {add_node, Node}).
+    gen_server:cast({?MODULE, 'roundrobin@roundrobin.keatonsmith.com'}, {add_node, Node}).
 
 %% API: Remove a Node
 remove_node(Node) ->
-    gen_server:cast(?MODULE, {remove_node, Node}).
+    gen_server:cast({?MODULE, 'roundrobin@roundrobin.keatonsmith.com'}, {remove_node, Node}).
 
 %% Initialization
 init(Nodes) ->
