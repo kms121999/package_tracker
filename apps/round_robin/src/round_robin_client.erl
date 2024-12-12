@@ -15,10 +15,7 @@
 
 %% API: Start the GenServer
 start_link(Nodes) ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, Nodes, [
-        'backend.keatonsmith.com',
-        'backend2.keatonsmith.com'
-    ]).
+    gen_server:start_link({local, ?MODULE}, ?MODULE, Nodes, []).
 
 %% API: Get the Next Node
 next_node() ->
