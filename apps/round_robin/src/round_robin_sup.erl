@@ -17,7 +17,7 @@ init([]) ->
                  intensity => 0,
                  period => 1},
     ChildSpecs = [
-        #{id => round_robin,
+        #{id => round_robin_client,
           start => {round_robin_client, start_link, [
             'backend.keatonsmith.com',
             'backend2.keatonsmith.com'
