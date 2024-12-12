@@ -11,7 +11,10 @@ start_link() ->
 
 update_location(Data, ReqId) ->
     % lumberjack_server:info("Casting truck update", #{module => ?MODULE, req_id => ReqId}),
-    {ok, Node} = round_robin_client:next_node(),
+
+    Result = round_robin_client:next_node(),
+    io:format("Result: ~p~n", [Result]),
+    {ok, Node} = Result,
     gen_server:cast({?MODULE, Node}, {update, Data, ReqId}).
 
 init([]) ->
