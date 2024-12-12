@@ -5,8 +5,7 @@
   {mod, {round_robin_app, []}},
   {applications,
    [kernel,
-    stdlib,
-    riakc
+    stdlib
    ]},
   {env,[]},
   {modules, []},

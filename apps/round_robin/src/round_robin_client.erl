@@ -1,5 +1,5 @@
 -module(round_robin_client).
--behaviour(gen_server).
+-behavior(gen_server).
 
 %% API Functions
 -export([start_link/1, next_node/0, add_node/1, remove_node/1]).
